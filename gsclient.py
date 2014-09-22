@@ -166,9 +166,9 @@ class Client:
 
 
 if __name__ == "__main__":
-	geoserver = ""
-	username = ""
-	password = ""
+	geoserver = "http://wssi.ncsa.illinois.edu:8080/geoserver/rest"
+	username = "admin"
+	password = "NCSAwssi"
 	myclient = Client(geoserver, username, password)
 	myclient.setStyle('geotiff', 'testing')
 	# myclient.createRasterStyle('testing', f.read())

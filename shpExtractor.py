@@ -320,7 +320,7 @@ if __name__ == '__main__':
 
     geoServer = sys.argv[1]
     gs_username = sys.argv[2]
-    gs_passowrd = sys.argv[3]
+    gs_password = sys.argv[3]
     gs_workspace = sys.argv[4]
 
     logger = logging.getLogger(extractorName)

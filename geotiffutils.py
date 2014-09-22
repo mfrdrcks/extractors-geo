@@ -7,8 +7,9 @@ from fractions import Fraction
 
 class Utils:
 
-	def __init__(self, geotifffile):
+	def __init__(self, geotifffile, rasterStyleTemplate):
 		self.geotiff = geotifffile
+		self.rasterStyleTemplate = rasterStyleTemplate
 		self.epsg = 'UNKNOWN'
 		self.extent = 'UNKNOWN'
 		self.isGeotiff = self.checkGeotiff()
@@ -136,7 +137,7 @@ class Utils:
 		print 'nodata', nodataValue
 		print 'min', minValue
 		print 'max', maxValue
-		stylefile = open('rasterTemplate.xml', 'r')	
+		stylefile = open(self.rasterStyleTemplate, 'r')	
 		style = stylefile.read()
 
 		validNoData = True

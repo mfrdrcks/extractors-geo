@@ -48,6 +48,7 @@ geoServer = "http://localhost:8080/geoserver/"
 gs_username = ""
 gs_password = ""
 gs_workspace = ""
+raster_style = ""
 
 # ----------------------------------------------------------------------
 # END CONFIGURATION
@@ -175,6 +176,7 @@ def download_file(channel, header, host, key, fileid, intermediatefileid):
 
     # fetch data
     url=host + 'api/files/' + intermediatefileid + '?key=' + key
+    print url
     r=requests.get('%sapi/files/%s?key=%s' % (host, intermediatefileid, key),
                    stream=True, verify=sslVerify)
     r.raise_for_status()
@@ -221,7 +223,7 @@ def process_file(channel, header, host, key, fileid, intermediatefileid, inputfi
 
 
 def extractGeotiff(inputfile, fileid):
-	global geoServer, gs_username, gs_password, gs_workspace
+	global geoServer, gs_username, gs_password, gs_workspace, raster_style
 
 	storeName = fileid
 	msg = {}
@@ -233,7 +235,7 @@ def extractGeotiff(inputfile, fileid):
 
 	uploadfile = inputfile
 
-	geotiffUtil = gu.Utils(uploadfile)
+	geotiffUtil = gu.Utils(uploadfile, raster_style)
 
 	if not geotiffUtil.hasError():
 		msg['isGeotiff'] = True	
@@ -279,14 +281,15 @@ if __name__ == '__main__':
     logging.basicConfig(format="%(asctime)-15s %(name)-10s %(levelname)-7s : %(message)s",
                         level=logging.WARN)
 
-    if len(sys.argv) < 5:
-        logger.info("geoserver url, admin username, admin password, workspace")
+    if len(sys.argv) < 6:
+        logger.info("geoserver url, admin username, admin password, workspace, raster style file")
         sys.exit()
 
     geoServer = sys.argv[1]
     gs_username = sys.argv[2]
-    gs_passowrd = sys.argv[3] 
+    gs_password = sys.argv[3] 
     gs_workspace = sys.argv[4]
+    raster_style = sys.argv[5]
 
     logger = logging.getLogger(extractorName)
     logger.setLevel(logging.DEBUG)
