@@ -1,4 +1,4 @@
-# geotiffExtractor.py geoserver_url admin_username admin_password workspace
+# geotiffExtractor.py geoserver_url admin_username admin_password workspace raster_style_file
 # shpExtractor.py geoserver_url admin_username admin_password workspace
 # required python library
 sudo apt-get install python-gdal
