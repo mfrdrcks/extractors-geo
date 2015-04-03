@@ -19,9 +19,9 @@ def connect_message_bus():
     global rabbitmqURL, extractorName, routingKeys, messageType, exchange,logger
 
     # connect to rabbitmq using input username and password
-    #if (username is None or password is None):
-    if rabbitmqURL is None:
-        connection = pika.BlockingConnection(pika.URLParameters("amqp://guest:guest@localhost:5672/%2f"))
+    if (rabbitmqURL is None):
+        logger.info("no rabbitmqURL specified")
+        sys.exit(1)
     else:
         parameters = pika.URLParameters(rabbitmqURL)
         connection = pika.BlockingConnection(parameters)
@@ -272,20 +272,6 @@ if __name__ == '__main__':
     logging.basicConfig(format="%(asctime)-15s %(name)-10s %(levelname)-7s : %(message)s",
                         level=logging.WARN)
 
-    #if len(sys.argv) < 5:
-    #    logger.info("geoserver url, admin username, admin password, workspace")
-    #    sys.exit()
-    total_argv = len(sys.argv)
-    if total_argv == 4 :
-        geoServer = sys.argv[1]
-        gs_username = sys.argv[2]
-        gs_password = sys.argv[3]
-        gs_workspace = sys.argv[4]
-    else:
-        geoServer = geoServer
-        gs_username = gs_username
-        gs_password = gs_password
-        gs_workspace = gs_workspace
     logger = logging.getLogger(extractorName)
     logger.setLevel(logging.DEBUG)
 
