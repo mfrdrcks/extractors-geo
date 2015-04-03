@@ -10,63 +10,21 @@ import json
 import subprocess
 import tempfile
 import os
-
+from config_tif import *
 
 ## Assumption: this extractor runs on localhost with rabbitMQ with default setting
-
-
-# ----------------------------------------------------------------------
-# BEGIN CONFIGURATION
-# ----------------------------------------------------------------------
-
-# name where rabbitmq is running
-rabbitmqhost = "localhost"
-
-# name to show in rabbitmq queue list
-exchange = "medici"
-
-# name to show in rabbitmq queue list
-extractorName = "geotiffExtractor"
-
-# username and password to connect to rabbitmq
-username = None
-password = None
-
-# accept any type of file that is text
-routingKeys = ["*.file.image.tiff","*.file.image.tif"] 
-
-# secret key used to connect to medici, this will eventually be
-# part of the message received.
-#secretKey = "r1ek3rs"
-
-# trust certificates, set this to false for self signed certificates
-sslVerify=False
-
-
-# Geoserver setting
-geoServer = "http://localhost:8080/geoserver/"
-gs_username = ""
-gs_password = ""
-gs_workspace = ""
-raster_style = ""
-
-# ----------------------------------------------------------------------
-# END CONFIGURATION
-# ----------------------------------------------------------------------
-
 
 # ----------------------------------------------------------------------
 # setup connection to server and wait for messages
 def connect_message_bus():
     """Connect to message bus and wait for messages"""
-    global extractorName, username, password, messageType, exchange
+    global rabbitmqURL,extractorName, messageType, exchange
 
     # connect to rabbitmq using input username and password
-    if (username is None or password is None):
-        connection = pika.BlockingConnection()
+    if (rabbitmqURL is None):
+        sys.exit(1)
     else:
-        credentials = pika.PlainCredentials(username, password)
-        parameters = pika.ConnectionParameters(host=rabbitmqhost, credentials=credentials)
+        parameters = pika.URLParameters(rabbitmqURL) 
         connection = pika.BlockingConnection(parameters)
     
     # connect to channel
@@ -280,17 +238,6 @@ if __name__ == '__main__':
     # configure the logging system
     logging.basicConfig(format="%(asctime)-15s %(name)-10s %(levelname)-7s : %(message)s",
                         level=logging.WARN)
-
-    if len(sys.argv) < 6:
-        logger.info("geoserver url, admin username, admin password, workspace, raster style file")
-        sys.exit()
-
-    geoServer = sys.argv[1]
-    gs_username = sys.argv[2]
-    gs_password = sys.argv[3] 
-    gs_workspace = sys.argv[4]
-    raster_style = sys.argv[5]
-
     logger = logging.getLogger(extractorName)
     logger.setLevel(logging.DEBUG)
 
