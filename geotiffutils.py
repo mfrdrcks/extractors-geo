@@ -153,12 +153,12 @@ class Utils:
 				validNoData = False
 			
 		if not validNoData:
-			nodataLine = '<!-- nodata value or nodata value is in range of valid data range -->'
+			nodataLine = '<!-- nodata value or nodata value is in range of valid data range -->\n'
 			colormaplines += nodataLine
 			colormaplines += minline
 			colormaplines += maxline
 		else:
-			nodataLine = '<ColorMapEntry color="#000000" quantity="'+str(nodataValue)+'" label="nodata" opacity="0.0" />'
+			nodataLine = '<ColorMapEntry color="#000000" quantity="'+str(nodataValue)+'" label="nodata" opacity="0.0" />\n'
 			if nodataValue <= minValue:
 				colormaplines += nodataLine
 				colormaplines += minline
