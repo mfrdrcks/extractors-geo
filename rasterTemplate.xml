@@ -13,9 +13,7 @@
           <RasterSymbolizer>
             <Opacity>1.0</Opacity>
             <ColorMap>
-              <<<nodataline>>>
-              <ColorMapEntry color="#000000" quantity="<<<min>>>" label="min"/>
-              <ColorMapEntry color="#FFFFFF" quantity="<<<max>>>" label="max" />
+              <<<colormap>>>
             </ColorMap>
           </RasterSymbolizer>
         </Rule>

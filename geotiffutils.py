@@ -140,22 +140,35 @@ class Utils:
 		stylefile = open(self.rasterStyleTemplate, 'r')	
 		style = stylefile.read()
 
+		minline = '<ColorMapEntry color="#000000" quantity="'+str(minValue)+'" label="min" />\n'
+		maxline = '<ColorMapEntry color="#000000" quantity="'+str(maxValue)+'" label="max" />\n'
+		colormaplines = ''
+
 		validNoData = True
 
 		if nodataValue == None:
 			validNoData = False 
 		else:
-			if nodataValue >= minValue and nodataValue <= maxValue:
+			if nodataValue > minValue and nodataValue < maxValue:
 				validNoData = False
 			
 		if not validNoData:
 			nodataLine = '<!-- nodata value or nodata value is in range of valid data range -->'
+			colormaplines += nodataLine
+			colormaplines += minline
+			colormaplines += maxline
 		else:
-			nodataLine = '<ColorMapEntry color="#000000" quantity="'+str(nodataValue)+"\" label=\"nodata\" opacity=\"0.0\" />"
+			nodataLine = '<ColorMapEntry color="#000000" quantity="'+str(nodataValue)+'" label="nodata" opacity="0.0" />'
+			if nodataValue <= minValue:
+				colormaplines += nodataLine
+				colormaplines += minline
+				colormaplines += maxline
+			if nodataValue >= maxValue:
+				colormaplines += minline
+				colormaplines += maxline
+				colormaplines += nodataLine
 		
-		style = style.replace('<<<nodataline>>>', nodataLine)
-		style = style.replace('<<<min>>>', str(minValue))
-		style = style.replace('<<<max>>>', str(maxValue))
+		style = style.replace('<<<colormap>>>', colormaplines)
 		return style
 			
 
