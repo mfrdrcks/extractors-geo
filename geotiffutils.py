@@ -141,7 +141,7 @@ class Utils:
 		style = stylefile.read()
 
 		minline = '<ColorMapEntry color="#000000" quantity="'+str(minValue)+'" label="min" />\n'
-		maxline = '<ColorMapEntry color="#000000" quantity="'+str(maxValue)+'" label="max" />\n'
+		maxline = '<ColorMapEntry color="#FFFFFF" quantity="'+str(maxValue)+'" label="max" />\n'
 		colormaplines = ''
 
 		validNoData = True
