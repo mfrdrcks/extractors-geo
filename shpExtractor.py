@@ -38,7 +38,10 @@ def connect_message_bus():
     # connect queue and exchange
     for k in routingKeys:
         channel.queue_bind(queue=extractorName, exchange=exchange, routing_key=k)
-
+    
+    # setting prefetch count to 1 so we only take 1 message of the bus at a time, so other extractors of the same type can take the next message.
+    channel.basic_qos(prefetch_count=1)
+    
     # create listener
     channel.basic_consume(on_message, queue=extractorName, no_ack=False)
 
@@ -84,7 +87,7 @@ def on_message(channel, method, header, body):
         process_file(channel, header, host, secretKey, fileid, intermediatefileid, inputfile)
  
         # notify rabbitMQ we are done processsing message
-        channel.basic_ack(method.delivery_tag)
+        #channel.basic_ack(method.delivery_tag)
 
     except subprocess.CalledProcessError as e:
         msg = str.format("Error processing [exit code=%d]\n%s", e.returncode, e.output)
@@ -95,6 +98,7 @@ def on_message(channel, method, header, body):
         status_update(channel, header, fileid, "Error processing")
     finally:
         status_update(channel, header, fileid, "Done")
+        channel.basic_ack(method.delivery_tag)
         if inputfile is not None:
             try:
                 os.remove(inputfile)
