@@ -14,11 +14,20 @@ class Client:
 		self.catalog = Catalog(self.restserver, self.username, self.password) 
 		self.tempDir = tempfile.mkdtemp()
 
+	## this method assume that there is 1 store per layer
+	def getResourceByStoreName(self, storeName, workspace):
+		store = self.catalog.get_store(storeName, workspace)
+		resources = self.catalog.get_resources(store=store)
+		if resources == None: 
+			return None
+		else:
+			return resources[0]
+
 	def getLayers(self):
 		layers = self.catalog.get_layers()
 		return layers
 
-	def getLayerByStore(self, storeName):
+	def getLayerByStoreName(self, storeName):
 		layers = self.catalog.get_layers()
 	
 		for layer in layers:
@@ -26,9 +35,22 @@ class Client:
 				return layer
 		return None
 
+	def getLayerByResource(self, resource):
+		layers = self.catalog.get_layers(resource)
+		if layers == None: 
+			return None
+		else:
+			return layers[0]
+
+	def getTest(self):
+		url = "http://geoserver.ncsa.illinois.edu:9999/geoserver/rest"
+		#return self.catalog.get_xml(url);
+		return self.catalog.get_store("551ef83ae4b00b62b4eb3128", "medici")
+
 	def mintMetadata(self, workspace, storeName, extent):
 		metadata = {}
-		layer = self.getLayerByStore(storeName)
+		resource = self.getResourceByStoreName(storeName, workspace)
+		layer = self.getLayerByResource(resource)
 		if layer == None: 
 			return metadata
 
@@ -54,15 +76,12 @@ class Client:
 
 		# setup projection
 		
-		resources = self.catalog.get_resources()
+		resource = self.getResourceByStoreName(storeName, workspace)
 
-		for resource in resources:
-			if resource.store.name == storeName:
-				if resource.projection == None:
-					print 'Setting projection', projection
-					resource.projection = projection
-				self.catalog.save(resource)
-				break
+		if resource.projection == None:
+			print 'Setting projection', projection
+			resource.projection = projection
+			self.catalog.save(resource)
 		print "[DONE]"
 		return True
 
@@ -81,21 +100,17 @@ class Client:
 			print "[DONE]"
 			return False
 
-		# setup projection
-		resources = self.catalog.get_resources()
+		resource = self.getResourceByStoreName(storeName, workspace)
 
-		for resource in resources:
-			if resource.store.name == storeName:
-				# setting projection
-				if resource.projection == None:
-					print 'Setting projection', projection
-					resource.projection = projection
-					self.catalog.save(resource)
-				break
+		# setting projection
+		if resource.projection == None:
+			print 'Setting projection', projection
+			resource.projection = projection
+			self.catalog.save(resource)
 		
 		if self.uploadRasterStyle(storeName, styleStr):
 			print 'Setting style'
-			layer = self.getLayerByStore(storeName)
+			layer = self.getLayerByResource(resource)
 			self.setStyle(layer.name, storeName)
 		
 		print "[DONE]"
@@ -132,7 +147,10 @@ class Client:
 		self.catalog.save(layer)
 
 	def createThumbnail(self, workspace, storeName, extent, width, height):
-		layer = self.getLayerByStore(storeName)
+		resource = self.getResourceByStoreName(storeName, workspace)
+		layer = self.getLayerByResource(resource)
+		if layer == None: 
+			return ''
 		layerName = workspace+":"+layer.name
 		url = self.wmsserver+"?request=GetMap&layers="+layerName+"&bbox="+extent+"&width="+width+"&height="+height+"&srs=EPSG:3857&format=image%2Fpng"
 
@@ -166,14 +184,14 @@ class Client:
 
 
 if __name__ == "__main__":
-	geoserver = "http://wssi.ncsa.illinois.edu:8080/geoserver/rest"
-	username = "admin"
-	password = "NCSAwssi"
+	geoserver = ""
+	username = ""
+	password = ""
 	myclient = Client(geoserver, username, password)
-	myclient.setStyle('geotiff', 'testing')
+	#myclient.setStyle('geotiff', 'testing')
 	# myclient.createRasterStyle('testing', f.read())
-	#uploadShapefile(geoserver, username, password, "wssi", "gltg-pools-test", "gltg-pools-nad83", "gltg-pools-nad83.zip", "EPSG:4269")
-	#myclient.uploadGeotiff("wssi", "test", "geotiff.tif", "EPSG:26916")
+	#myclient.uploadShapefile("medici", "test-shp", "/home/jonglee/share/browndog/qina-data2/huc12.zip", "EPSG:26916")
+	#myclient.uploadGeotiff("medici", "test", "/home/jonglee/share/browndog/39-44.tif", 'None', "EPSG:26916")
 	#getLayers(geoserver, username, password)
 	#l = myclient.getLayerByStore("gltg-pools")
 	#if l != None:
