@@ -175,7 +175,8 @@ def process_file(channel, header, host, key, fileid, intermediatefileid, inputfi
         metadata['WMS Layer Name'] = result['WMS Layer Name']
         metadata['WMS Service URL'] = result['WMS Service URL']
         metadata['WMS Layer URL'] = result['WMS Layer URL']
-
+    
+    print "Posting wms metadata ..."
     headers={'Content-Type': 'application/json'}
     r = requests.post('%sapi/files/%s/metadata?key=%s' % (host, fileid, key),
                       headers=headers,

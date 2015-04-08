@@ -42,16 +42,14 @@ class Client:
 		else:
 			return layers[0]
 
-	def getTest(self):
-		url = "http://geoserver.ncsa.illinois.edu:9999/geoserver/rest"
-		#return self.catalog.get_xml(url);
-		return self.catalog.get_store("551ef83ae4b00b62b4eb3128", "medici")
-
 	def mintMetadata(self, workspace, storeName, extent):
+		print "Creating wms metadata ... ", 
+
 		metadata = {}
 		resource = self.getResourceByStoreName(storeName, workspace)
 		layer = self.getLayerByResource(resource)
 		if layer == None: 
+			print 'No layer found [DONE]'
 			return metadata
 
 		# generate metadata 
@@ -60,6 +58,7 @@ class Client:
 		metadata['WMS Service URL'] = self.wmsserver
 		metadata['WMS Layer URL'] = self.wmsserver+'?request=GetMap&layers='+wmsLayerName+'&bbox='+extent+'&width=640&height=480&srs=EPSG:3857&format=image%2Fpng'
 
+		print '[DONE]'
 		return metadata
 
 	def uploadShapefile(self, workspace, storeName, filename, projection):
@@ -147,9 +146,11 @@ class Client:
 		self.catalog.save(layer)
 
 	def createThumbnail(self, workspace, storeName, extent, width, height):
+		print 'Creating Thumbnail ...',
 		resource = self.getResourceByStoreName(storeName, workspace)
 		layer = self.getLayerByResource(resource)
 		if layer == None: 
+			print 'no layer found [DONE]'
 			return ''
 		layerName = workspace+":"+layer.name
 		url = self.wmsserver+"?request=GetMap&layers="+layerName+"&bbox="+extent+"&width="+width+"&height="+height+"&srs=EPSG:3857&format=image%2Fpng"
@@ -166,8 +167,10 @@ class Client:
 			with open(path, 'wb') as f:
 				for chunk in r.iter_content():
 					f.write(chunk)
+			print '[DONE]'
 			return path
 		else:
+			print 'can not create thumbnail [DONE]'
 			return ''
 
 
