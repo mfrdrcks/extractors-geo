@@ -3,7 +3,7 @@ import requests
 import os.path
 import tempfile
 import urlparse
-
+import logging
 class Client:
 	
 	def __init__ (self, geoserver, username, password):
@@ -13,10 +13,16 @@ class Client:
 		self.password = password
 		self.catalog = Catalog(self.restserver, self.username, self.password) 
 		self.tempDir = tempfile.mkdtemp()
+                logging.basicConfig(format="%(asctime)-15s %(name)-10s %(levelname)-7s : %(message)s",
+                        level=logging.WARN)
+                self.logger = logging.getLogger("gsclient")
+                self.logger.setLevel(logging.DEBUG)
 
 	## this method assume that there is 1 store per layer
 	def getResourceByStoreName(self, storeName, workspace):
+                self.logger.debug("catalog.get_store called")
 		store = self.catalog.get_store(storeName, workspace)
+                self.logger.debug("catalog.get_resources called based on store")
 		resources = self.catalog.get_resources(store=store)
 		if resources == None: 
 			return None
@@ -28,37 +34,42 @@ class Client:
 		return layers
 
 	def getLayerByStoreName(self, storeName):
+                self.logger.debug("getLayerbystore name started")
 		layers = self.catalog.get_layers()
 	
 		for layer in layers:
 			if layer.resource.store.name == storeName:
+                                self.logger.debug("found the layer by store name")
 				return layer
 		return None
 
 	def getLayerByResource(self, resource):
-		layers = self.catalog.get_layers(resource)
+		self.logger.debug("get Layer by Resource started...")
+                layers = self.catalog.get_layers(resource)
 		if layers == None: 
 			return None
 		else:
 			return layers[0]
 
 	def mintMetadata(self, workspace, storeName, extent):
-		print "Creating wms metadata ... ", 
+		self.logger.debug("Creating wms metadata ... ") 
 
 		metadata = {}
+                self.logger.debug("getREsourceByStoreName..")
 		resource = self.getResourceByStoreName(storeName, workspace)
-		layer = self.getLayerByResource(resource)
+		self.logger.debug("getLayerByResource ...")
+                layer = self.getLayerByResource(resource)
 		if layer == None: 
 			print 'No layer found [DONE]'
 			return metadata
-
+                self.logger.debug("done getting layer name")
 		# generate metadata 
 		wmsLayerName = workspace + ':' + layer.name
 		metadata['WMS Layer Name'] = wmsLayerName
 		metadata['WMS Service URL'] = self.wmsserver
 		metadata['WMS Layer URL'] = self.wmsserver+'?request=GetMap&layers='+wmsLayerName+'&bbox='+extent+'&width=640&height=480&srs=EPSG:3857&format=image%2Fpng'
 
-		print '[DONE]'
+		self.logger.debug('[DONE]')
 		return metadata
 
 	def uploadShapefile(self, workspace, storeName, filename, projection):
@@ -85,7 +96,7 @@ class Client:
 		return True
 
 	def uploadGeotiff(self, workspace, storeName, filename, styleStr, projection):
-		print "Uploading geotiff",filename,"...",
+	        print "Uploading geotiff",filename,"...",
 		name, ext = os.path.splitext(os.path.basename(filename))
 		# TODO need to check the coverage name to avoid duplication
 		url = self.restserver+"/workspaces/"+workspace+"/coveragestores/"+storeName+"/file.geotiff"+"?coverageName="+name
@@ -96,7 +107,7 @@ class Client:
 		print response.status_code, response.text
 
 		if response.status_code != 201: 
-			print "[DONE]"
+			self.logger.debug("[DONE]")
 			return False
 
 		resource = self.getResourceByStoreName(storeName, workspace)
@@ -108,11 +119,12 @@ class Client:
 			self.catalog.save(resource)
 		
 		if self.uploadRasterStyle(storeName, styleStr):
-			print 'Setting style'
+			self.logger.debug('Setting style')
 			layer = self.getLayerByResource(resource)
+                        self.logger.debug('getLayerResource done') 
 			self.setStyle(layer.name, storeName)
 		
-		print "[DONE]"
+		self.logger.debug("style set: [DONE]")
 		return True
 
 	def uploadRasterStyle(self, storeName, styleStr):
@@ -134,7 +146,7 @@ class Client:
 			response = requests.put(url+"/"+storeName, headers={'content-type':'application/vnd.ogc.sld+xml'}, auth=(self.username, self.password),data=f)
 		print response.status_code, 
 		print response.text
-
+                self.logger.debug("uploaded the raster style")
 		if response.status_code == 200:
 			return True
 		else: 
@@ -179,18 +191,26 @@ class Client:
 		if self.tempDir != None:
 			try:
 				import shutil
-				print "Deleting temp dir ", self.tempDir
+				self.logger.debug( "Deleting temp dir "+ self.tempDir)
 				shutil.rmtree(self.tempDir)
+                                self.logger.debug("Deleted Temp file")
 			except OSError as exc:
 				if exc.errno != errno.ENOENT:
 					raise
 
 
 if __name__ == "__main__":
-	geoserver = ""
-	username = ""
+	
+       # global loggergs
+        geoserver = ""
+	
+        username = ""
 	password = ""
 	myclient = Client(geoserver, username, password)
+        #logging.basicConfig(format="%(asctime)-15s %(name)-10s %(levelname)-7s : %(message)s",
+        #                level=logging.WARN)
+        #loggergs = logging.getLogger("gsClient")
+        #loggergs.setLevel(logging.DEBUG) 
 	#myclient.setStyle('geotiff', 'testing')
 	# myclient.createRasterStyle('testing', f.read())
 	#myclient.uploadShapefile("medici", "test-shp", "/home/jonglee/share/browndog/qina-data2/huc12.zip", "EPSG:26916")
