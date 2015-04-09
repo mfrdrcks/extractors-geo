@@ -154,7 +154,7 @@ def download_file(channel, header, host, key, fileid, intermediatefileid):
 def process_file(channel, header, host, key, fileid, intermediatefileid, inputfile):
     """Process the geotiff and create geoserver layer"""
 
-    global sslVerify
+    global sslVerify,logger
 
     status_update(channel, header, fileid, "Processing geotiff file ...")
 
@@ -176,17 +176,18 @@ def process_file(channel, header, host, key, fileid, intermediatefileid, inputfi
         metadata['WMS Service URL'] = result['WMS Service URL']
         metadata['WMS Layer URL'] = result['WMS Layer URL']
     
-    print "Posting wms metadata ..."
+    logger.debug("Posting wms metadata ...")
+
     headers={'Content-Type': 'application/json'}
     r = requests.post('%sapi/files/%s/metadata?key=%s' % (host, fileid, key),
                       headers=headers,
                       data=json.dumps(metadata),
                       verify=sslVerify);
     r.raise_for_status()
-
+    logger.debug("posted the metadata")
 
 def extractGeotiff(inputfile, fileid):
-	global geoServer, gs_username, gs_password, gs_workspace, raster_style
+	global geoServer, gs_username, gs_password, gs_workspace, raster_style,logger
 
 	storeName = fileid
 	msg = {}
@@ -207,12 +208,13 @@ def extractGeotiff(inputfile, fileid):
 		epsg = "EPSG:"+geotiffUtil.getEpsg()
 		
 		style = geotiffUtil.createStyle()
+                logger.debug("style created")
 		success = gsclient.uploadGeotiff(gs_workspace, storeName, uploadfile, style, epsg)
-
+                logger.debug("upload geotiff successfully")
 		if success: 
 			#print "---->success"
 			metadata = gsclient.mintMetadata(gs_workspace, storeName, geotiffUtil.getExtent())
-
+                        logger.debug("mintMetadata obtained")
 			if len(metadata) == 0:
 				msg['errorMsg'].append("Coulnd't generate metadata")
 			else:
