@@ -13,58 +13,78 @@ class Client:
 		self.password = password
 		self.catalog = Catalog(self.restserver, self.username, self.password) 
 		self.tempDir = tempfile.mkdtemp()
-                logging.basicConfig(format="%(asctime)-15s %(name)-10s %(levelname)-7s : %(message)s",
-                        level=logging.WARN)
-                self.logger = logging.getLogger("gsclient")
-                self.logger.setLevel(logging.DEBUG)
+		self.resource = None
+		self.layer = None
+		self.layerName = None
+		logging.basicConfig(format="%(asctime)-15s %(name)-10s %(levelname)-7s : %(message)s", level=logging.WARN)
+		self.logger = logging.getLogger("gsclient")
+		self.logger.setLevel(logging.DEBUG)
 
 	## this method assume that there is 1 store per layer
 	def getResourceByStoreName(self, storeName, workspace):
-                self.logger.debug("catalog.get_store called")
+		if self.resource != None:
+			self.logger.debug("resource instance found; no need to fetch")
+			return self.resource
+		self.logger.debug("catalog.get_store called")
 		store = self.catalog.get_store(storeName, workspace)
-                self.logger.debug("catalog.get_resources called based on store")
+		self.logger.debug("catalog.get_resources called based on store")
 		resources = self.catalog.get_resources(store=store)
+		self.logger.debug("fetched resources from server")
 		if resources == None: 
 			return None
 		else:
-			return resources[0]
+			self.resource = resources[0]
+			return self.resource
 
 	def getLayers(self):
 		layers = self.catalog.get_layers()
 		return layers
 
 	def getLayerByStoreName(self, storeName):
-                self.logger.debug("getLayerbystore name started")
+		self.logger.debug("getLayerbystore name started")
 		layers = self.catalog.get_layers()
 	
 		for layer in layers:
 			if layer.resource.store.name == storeName:
-                                self.logger.debug("found the layer by store name")
+				self.logger.debug("found the layer by store name")
 				return layer
 		return None
 
 	def getLayerByResource(self, resource):
+		if self.layer != None:
+			self.logger.debug("layer instance found; no need to fetch")
+			return self.layer
+			
 		self.logger.debug("get Layer by Resource started...")
-                layers = self.catalog.get_layers(resource)
+		layers = self.catalog.get_layers(resource)
+		self.logger.debug("fetched layers from the server")
 		if layers == None: 
 			return None
 		else:
-			return layers[0]
+			self.layer = layers[0]
+			return self.layer
 
 	def mintMetadata(self, workspace, storeName, extent):
 		self.logger.debug("Creating wms metadata ... ") 
-
 		metadata = {}
-                self.logger.debug("getREsourceByStoreName..")
-		resource = self.getResourceByStoreName(storeName, workspace)
-		self.logger.debug("getLayerByResource ...")
-                layer = self.getLayerByResource(resource)
-		if layer == None: 
-			print 'No layer found [DONE]'
-			return metadata
-                self.logger.debug("done getting layer name")
+		layername = None
+		if self.layerName == None:
+			if self.layer == None:
+				self.logger.debug("getResourceByStoreName..")
+				resource = self.getResourceByStoreName(storeName, workspace)
+				self.logger.debug("getLayerByResource ...")
+				layer = self.getLayerByResource(resource)
+				self.logger.debug("done getting layer name")
+				if layer == None: 
+					self.logger.debug('No layer found [DONE]')
+					return metadata
+			else:
+				layername = self.layer.name
+				self.layerName = self.layer.name
+		else:
+			layername = self.layerName
 		# generate metadata 
-		wmsLayerName = workspace + ':' + layer.name
+		wmsLayerName = workspace + ':' + layername
 		metadata['WMS Layer Name'] = wmsLayerName
 		metadata['WMS Service URL'] = self.wmsserver
 		metadata['WMS Layer URL'] = self.wmsserver+'?request=GetMap&layers='+wmsLayerName+'&bbox='+extent+'&width=640&height=480&srs=EPSG:3857&format=image%2Fpng'
@@ -96,7 +116,7 @@ class Client:
 		return True
 
 	def uploadGeotiff(self, workspace, storeName, filename, styleStr, projection):
-	        print "Uploading geotiff",filename,"...",
+		print "Uploading geotiff",filename,"...",
 		name, ext = os.path.splitext(os.path.basename(filename))
 		# TODO need to check the coverage name to avoid duplication
 		url = self.restserver+"/workspaces/"+workspace+"/coveragestores/"+storeName+"/file.geotiff"+"?coverageName="+name
@@ -109,6 +129,7 @@ class Client:
 		if response.status_code != 201: 
 			self.logger.debug("[DONE]")
 			return False
+		self.layerName = name
 
 		resource = self.getResourceByStoreName(storeName, workspace)
 
@@ -120,9 +141,11 @@ class Client:
 		
 		if self.uploadRasterStyle(storeName, styleStr):
 			self.logger.debug('Setting style')
-			layer = self.getLayerByResource(resource)
-                        self.logger.debug('getLayerResource done') 
-			self.setStyle(layer.name, storeName)
+			#layer = self.getLayerByResource(resource)
+			#self.logger.debug('getLayerResource done') 
+			## stylename is same as storename
+			#self.setStyle(layer.name, storeName)
+			self.setStyle(self.layerName, storeName)
 		
 		self.logger.debug("style set: [DONE]")
 		return True
@@ -146,26 +169,44 @@ class Client:
 			response = requests.put(url+"/"+storeName, headers={'content-type':'application/vnd.ogc.sld+xml'}, auth=(self.username, self.password),data=f)
 		print response.status_code, 
 		print response.text
-                self.logger.debug("uploaded the raster style")
+		self.logger.debug("uploaded the raster style")
 		if response.status_code == 200:
 			return True
 		else: 
 			return False
 
 	def setStyle(self, layername, stylename):
-		layer = self.catalog.get_layer(layername)
+		layer = None
+		if self.layer != None:
+			layer = self.layer
+		else:
+			self.logger.debug("getting a layer by name")
+			layer = self.catalog.get_layer(layername)
 		layer.default_style = stylename
 		self.catalog.save(layer)
 
 	def createThumbnail(self, workspace, storeName, extent, width, height):
 		print 'Creating Thumbnail ...',
-		resource = self.getResourceByStoreName(storeName, workspace)
-		layer = self.getLayerByResource(resource)
-		if layer == None: 
-			print 'no layer found [DONE]'
-			return ''
-		layerName = workspace+":"+layer.name
-		url = self.wmsserver+"?request=GetMap&layers="+layerName+"&bbox="+extent+"&width="+width+"&height="+height+"&srs=EPSG:3857&format=image%2Fpng"
+		layername = None
+		if self.layerName == None:
+			if self.layer == None:
+				self.logger.debug("getResourceByStoreName..")
+				resource = self.getResourceByStoreName(storeName, workspace)
+				self.logger.debug("getLayerByResource ...")
+				layer = self.getLayerByResource(resource)
+				self.logger.debug("done getting layer name")
+				if layer == None: 
+					self.logger.debug('No layer found [DONE]')
+					return metadata
+			else:
+				self.logger.debug("layer instance found: no need to fetch")
+				layername = self.layer.name
+				self.layerName = self.layer.name
+		else:
+			self.logger.debug("layerName instance found: no need to fetch")
+			layername = self.layerName
+		wmsLayerName = workspace+":"+layer.name
+		url = self.wmsserver+"?request=GetMap&layers="+wmsLayerName+"&bbox="+extent+"&width="+width+"&height="+height+"&srs=EPSG:3857&format=image%2Fpng"
 
 		r = requests.get(url, stream=True)
 		path=os.path.join(self.tempDir,'tmp.png')
@@ -201,16 +242,15 @@ class Client:
 
 if __name__ == "__main__":
 	
-       # global loggergs
-        geoserver = ""
-	
-        username = ""
+	# global loggergs
+	geoserver = ""
+	username = ""
 	password = ""
 	myclient = Client(geoserver, username, password)
-        #logging.basicConfig(format="%(asctime)-15s %(name)-10s %(levelname)-7s : %(message)s",
-        #                level=logging.WARN)
-        #loggergs = logging.getLogger("gsClient")
-        #loggergs.setLevel(logging.DEBUG) 
+  	#logging.basicConfig(format="%(asctime)-15s %(name)-10s %(levelname)-7s : %(message)s",
+	#                level=logging.WARN)
+	#loggergs = logging.getLogger("gsClient")
+	#loggergs.setLevel(logging.DEBUG) 
 	#myclient.setStyle('geotiff', 'testing')
 	# myclient.createRasterStyle('testing', f.read())
 	#myclient.uploadShapefile("medici", "test-shp", "/home/jonglee/share/browndog/qina-data2/huc12.zip", "EPSG:26916")
