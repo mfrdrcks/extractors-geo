@@ -201,6 +201,8 @@ class Client:
 				if layer == None: 
 					self.logger.debug('No layer found [DONE]')
 					return metadata
+                                else:
+                                    layername = layer.name  
 			else:
 				self.logger.debug("layer instance found: no need to fetch")
 				layername = self.layer.name
