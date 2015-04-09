@@ -74,11 +74,13 @@ class Client:
 				resource = self.getResourceByStoreName(storeName, workspace)
 				self.logger.debug("getLayerByResource ...")
 				layer = self.getLayerByResource(resource)
-                                layername = layer.name 
+                                #layername = layer.name 
 				self.logger.debug("done getting layer name")
 				if layer == None: 
 					self.logger.debug('No layer found [DONE]')
 					return metadata
+                                 else:
+                                     layername = layer.name  
 			else:
 				layername = self.layer.name
 				self.layerName = self.layer.name
