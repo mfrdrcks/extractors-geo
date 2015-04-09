@@ -79,7 +79,7 @@ class Client:
 				if layer == None: 
 					self.logger.debug('No layer found [DONE]')
 					return metadata
-                                 else:
+                                else:
                                      layername = layer.name  
 			else:
 				layername = self.layer.name
