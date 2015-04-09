@@ -210,7 +210,8 @@ class Client:
 		else:
 			self.logger.debug("layerName instance found: no need to fetch")
 			layername = self.layerName
-		wmsLayerName = workspace+":"+layer.name
+		#wmsLayerName = workspace+":"+layer.name
+                wmsLayerName = workspace+":"+layername
 		url = self.wmsserver+"?request=GetMap&layers="+wmsLayerName+"&bbox="+extent+"&width="+width+"&height="+height+"&srs=EPSG:3857&format=image%2Fpng"
 
 		r = requests.get(url, stream=True)
