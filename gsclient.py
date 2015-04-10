@@ -116,6 +116,8 @@ class Client:
 			resource.projection = projection
 			self.catalog.save(resource)
 		print "[DONE]"
+		name, ext = os.path.splitext(os.path.basename(filename))
+		self.layerName = name
 		return True
 
 	def uploadGeotiff(self, workspace, storeName, filename, styleStr, projection):

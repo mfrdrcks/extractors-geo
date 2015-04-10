@@ -23,7 +23,7 @@ def connect_message_bus():
         logger.info("no rabbitmqURL specified")
         sys.exit(1)
     else:
-        parameters = pika.URLParameters(rabbitmqURL)
+	parameters = pika.URLParameters(rabbitmqURL)
         connection = pika.BlockingConnection(parameters)
     
     # connect to channel
@@ -200,8 +200,8 @@ def extractZipShp(inputfile, fileid):
 	if not zipshp.hasError():
 		msg['isZipShp'] = True	
 		result = subprocess.check_output(['file', '-b', '--mime-type', inputfile], stderr=subprocess.STDOUT)
-		if result.strip() != 'application/zip':	
-			uploadfile = zipshp.createZip(zipshp.tempDir)
+		#if result.strip() != 'application/zip':	
+		uploadfile = zipshp.createZip(zipshp.tempDir)
 		gsclient = gs.Client(geoServer, gs_username, gs_password)
 
 		if zipshp.getEpsg() == 'UNKNOWN' or zipshp.getEpsg() == None:

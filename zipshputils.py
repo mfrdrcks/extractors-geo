@@ -10,6 +10,8 @@ import shutil
 import errno
 import os
 import os.path
+import time
+import logging
 
 class Utils:
 	zipUtil = "/usr/bin/7z"
@@ -31,7 +33,11 @@ class Utils:
 		self.zipShpProp['targetZip'] = None
 		self.zipShpProp['epsg'] = 'UNKNOWN'
 		self.zipShpProp['extent'] = 'UNKNOWN'
-
+		logging.basicConfig(format="%(asctime)-15s %(name)-10s %(levelname)-7s : %(message)s", level=logging.WARN)
+		self.logger = logging.getLogger("zipshputils")
+		self.logger.setLevel(logging.DEBUG)
+		ts = time.gmtime()
+		self.time_stamp = str(ts.tm_mon)+str(ts.tm_hour)+str(ts.tm_min)+str(ts.tm_sec)
 
 		# create temp directory
 		print "Creating temp dir ...",
@@ -83,10 +89,24 @@ class Utils:
 
 	def getExtent(self):
 		return self.zipShpProp['extent']
+	def getShpName(self):
+		return self.zipShpProp['shpName']
 
 	def checkZipShp(self):
 		for f in self.files:
 			name, ext = os.path.splitext(os.path.basename(f))
+                        self.logger.debug("shp name : "+name+"  ext: "+ext)
+			os.rename(self.tempDir+"/"+os.path.basename(f), self.tempDir+"/"+os.path.basename(self.shpzipfile)+self.time_stamp+ext)
+		for f in os.listdir(self.tempDir):
+			self.logger.debug("file name"+ os.path.basename(f)) 
+		for f in self.files:
+                        name, ext = os.path.splitext(os.path.basename(f))
+                        self.logger.debug("shp rename : "+name+"  re-ext: "+ext)
+		self.files = [os.path.join(self.tempDir,f) for f in os.listdir(self.tempDir) ]
+                        #os.rename(self.tempDir+"/"+os.path.basename(f), name+self.time_stamp+'.ext')
+		for f in self.files:
+			name, ext = os.path.splitext(os.path.basename(f))
+			self.logger.debug("shp name : "+name+"  ext: "+ext)
 			if (os.path.isdir(f)): 
 				self.zipShpProp['hasDir'] = True
 				self.zipShpProp['hasError'] = True
@@ -129,7 +149,7 @@ class Utils:
 					if(self.zipShpProp['shpName'] != name): 
 						self.zipShpProp['hasSameName'] = False
 						self.zipShpProp['hasError'] = True
-			
+			self.logger.debug("ShapeFileName: "+ self.zipShpProp['shpName'])
 		if self.zipShpProp['shpFile'] == None or self.zipShpProp['shxFile'] == None or self.zipShpProp['dbfFile'] == None or self.zipShpProp['prjFile'] == None:
 			self.zipShpProp['hasError'] = True
 
@@ -199,8 +219,10 @@ class Utils:
 		if self.zipShpProp['hasError']:
 			print 'createZip: Zipped Shapefile has error'
 			return None
+		self.logger.debug("shpName: "+ self.zipShpProp['shpName'])
 		# rezip the files in zip format if it is not a zip file
 		self.zipShpProp['targetZip'] = os.path.join(destinationDir, self.zipShpProp['shpName']+'.zip')
+		self.logger.debug("targetZip : "+ self.zipShpProp['targetZip'])
 		subprocess.check_call([self.zipUtil,'a','-tzip', self.zipShpProp['targetZip'], self.tempDir+'/*'], shell=False)
 		return self.zipShpProp['targetZip']
 
