@@ -149,7 +149,7 @@ class Utils:
 					if(self.zipShpProp['shpName'] != name): 
 						self.zipShpProp['hasSameName'] = False
 						self.zipShpProp['hasError'] = True
-			self.logger.debug("ShapeFileName: "+ self.zipShpProp['shpName'])
+			#self.logger.debug("ShapeFileName: "+ self.zipShpProp['shpName'])
 		if self.zipShpProp['shpFile'] == None or self.zipShpProp['shxFile'] == None or self.zipShpProp['dbfFile'] == None or self.zipShpProp['prjFile'] == None:
 			self.zipShpProp['hasError'] = True
 
