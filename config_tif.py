@@ -1,32 +1,36 @@
-#!/usr/bin/env python
-#-----------------------------------------------------------------------
-#BEGIN CONFIGURATION
-# ----------------------------------------------------------------------
-#rabbitmqURL Parameters
-rabbitmqURL = ""
+# =============================================================================
+#
+# In order for this extractor to run according to your preferences,
+# the following parameters need to be set.
+#
+# Some parameters can be left with the default values provided here - in that
+# case it is important to verify that the default value is appropriate to
+# your system. It is especially important to verify that paths to files and
+# software applications are valid in your system.
+#
+# =============================================================================
 
-#exchane name
-exchange = "medici"
+import os
 
 # name to show in rabbitmq queue list
-extractorName = "ncsa.geotiffExtractor"
+extractorName = os.getenv('RABBITMQ_QUEUE', "ncsa.geo.tiff")
 
+# URL to be used for connecting to rabbitmq
+rabbitmqURL = os.getenv('RABBITMQ_URI', "amqp://guest:guest@localhost/%2f")
 
-# accept any type of file that is text
-routingKeys = ["*.file.image.tiff","*.file.image.tif"]
+# name of rabbitmq exchange
+rabbitmqExchange = os.getenv('RABBITMQ_EXCHANGE', "clowder")
 
+# type of files to process
+messageType = ["*.file.image.tiff",
+               "*.file.image.tif"]
 
 # trust certificates, set this to false for self signed certificates
-sslVerify=False
+sslVerify = os.getenv('RABBITMQ_SSLVERIFY', False)
 
 # Geoserver setting
-geoServer = ""
-gs_username = ""
-gs_password = ""
-gs_workspace = ""
-raster_style = ""
-# ----------------------------------------------------------------------
-# END CONFIGURATION
-# ----------------------------------------------------------------------
-
-
+geoServer = os.getenv('GEOSERVER_URL', '')
+gs_username = os.getenv('GEOSERVER_USERNAME', 'admin')
+gs_password = os.getenv('GEOSERVER_PASSWORD', 'geoserver')
+gs_workspace = os.getenv('GEOSERVER_WORKSPACE', 'clowder')
+raster_style = "rasterTemplate.xml"
