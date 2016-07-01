@@ -1,8 +1,7 @@
 FROM clowder/pyclowder
 MAINTAINER Rob Kooper <kooper@illinois.edu>
 
-# copy files
-#COPY entrypoint.sh *.py extractor_info.json rasterTemplate.xml requirements.txt /home/clowder/
+# copy requirements file
 COPY requirements.txt /home/clowder/
 
 # Install any programs needed
@@ -35,4 +34,5 @@ ENV RABBITMQ_URI="" \
     GEOSERVER_PASSWORD="geoserver" \
     GEOSERVER_WORKSPACE="clowder"
 
+# copy rest of the files needed
 COPY entrypoint.sh *.py extractor_info.json rasterTemplate.xml /home/clowder/
