@@ -1,4 +1,4 @@
-FROM clowder/pyclowder
+FROM clowder/pyclowder:1
 MAINTAINER Rob Kooper <kooper@illinois.edu>
 
 # copy requirements file
