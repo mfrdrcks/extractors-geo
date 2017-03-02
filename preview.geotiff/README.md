@@ -1,4 +1,4 @@
-GeoTiff Extractor
+# Clowder GeoTiff Metadata Extractor
 
 Overview
 

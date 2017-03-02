@@ -1,4 +1,4 @@
-Geoshp Extractor
+# Clowder Geoshp Metadata Extractor
 
 Overview
 geoshp extractor takes .zip input file and communicates with GeoServer (https://geoserver.ncsa.illinois.edu/geoserver/web/) to retrieve WMS metadata.
