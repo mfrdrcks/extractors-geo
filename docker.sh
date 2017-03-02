@@ -60,7 +60,7 @@ create() {
   # tag all versions
   for v in $VERSION; do
     if [ "$PROJECT" = "" ]; then
-      ${DEBUG} docker tag $$ ${2}-${1}:${v}
+      ${DEBUG} docker tag $$ ${2}:${v}
     else
       for p in ${PROJECT}; do
         NAME=$2
