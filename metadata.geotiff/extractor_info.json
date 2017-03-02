@@ -1,0 +1,17 @@
+{
+  "@context": "http://clowder.ncsa.illinois.edu/contexts/extractors.jsonld",
+  "name": "ncsa.geotiff.metadata",
+  "version": "1.0",
+  "description": "Extractor to perform Geotiff.",
+  "author": "Rui Liu <ruiliu@illinois.edu>",
+  "contributors": ["Bing Zhang <bing@illinois.edu>"],
+  "contexts": [
+    {
+      "raster": "http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.metadata#raster"
+    }
+  ],
+  "repository": {"repType": "git", "repUrl": "https://opensource.ncsa.illinois.edu/stash/scm/cats/extractors-geo.git"},
+  "external_services": [],
+  "dependencies": ["geoprocessing", "gdal"],
+  "bibtex": []
+}
