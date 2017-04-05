@@ -7,6 +7,7 @@ COPY requirements.txt /home/clowder/
 # Install any programs needed
 USER root
 RUN apt-get update && apt-get install -y \
+       file \
        gdal-bin \
        python-gdal \
        p7zip-full \
