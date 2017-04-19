@@ -10,7 +10,16 @@
       "raster": "http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.metadata#raster"
     }
   ],
-  "repository": {"repType": "git", "repUrl": "https://opensource.ncsa.illinois.edu/stash/scm/cats/extractors-geo.git"},
+  "repository": [
+    {
+      "repType": "git",
+      "repUrl": "https://opensource.ncsa.illinois.edu/stash/scm/cats/extractors-geo.git"
+    },
+    {
+      "repType": "docker",
+      "repUrl": "clowder/extractors-geotiff-metadata"
+    }
+  ],
   "external_services": [],
   "dependencies": ["geoprocessing", "gdal"],
   "bibtex": []
