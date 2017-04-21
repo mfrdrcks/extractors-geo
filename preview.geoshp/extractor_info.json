@@ -1,0 +1,32 @@
+{
+    "@context": "http://clowder.ncsa.illinois.edu/contexts/extractors.jsonld",
+    "name": "ncsa.geoshp.preview",
+    "version": "1.0",
+    "description": "gepshp extractor takes .zip input file to communicate with geoserver to retrieve WMS metadata",
+    "author": "Jong Lee <jonglee1@illinois.edu>",
+    "contributors": [
+        "Luigi Marini <lmarini@illinois.edu>",
+        "Rob Kooper <kooper@illinois.edu>",
+	"Bing Zhang <bing@illinois.edu>"
+    ],
+    "contexts": [
+        "WMS Layer Name": "http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Layer Name",
+        "WMS Service URL":"http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Service URL",
+        "WMS Layer URL":  "http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Layer URL"
+    ],
+    "repository": [
+        {
+            "repType": "git",
+            "repUrl": "https://opensource.ncsa.illinois.edu/stash/scm/cats/extractors-geo.git"
+        },
+        {
+            "repType": "docker",
+            "repUrl": "clowder/extractors-geoshp-preview"
+        }
+    ],
+    "external_services": [
+        "geoserver"
+    ],
+    "dependencies": [],
+    "bibtex": []
+}

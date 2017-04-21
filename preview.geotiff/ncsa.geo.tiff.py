@@ -8,7 +8,7 @@ import pika
 
 from pyclowder import extractors
 
-from config_tif import *
+from config import *
 import geotiffutils as gu
 import gsclient as gs
 
@@ -50,11 +50,29 @@ def process_file(parameters):
             extractors.status_update(result['errorMsg'][i], fileid, channel, header)
             logger.info('[%s] : %s', fileid, result['errorMsg'][i], extra={'fileid': fileid})
     else:
-        metadata = {}
-        metadata['WMS Layer Name'] = result['WMS Layer Name']
-        metadata['WMS Service URL'] = result['WMS Service URL']
-        metadata['WMS Layer URL'] = result['WMS Layer URL']
-        extractors.upload_file_metadata(metadata, parameters)
+    	# Context URL
+    	context_url = "https://clowder.ncsa.illinois.edu/contexts/metadata.jsonld"
+
+    	metadata = {
+	      "@context": [
+	        context_url,
+	        {
+                  'WMS Layer Name': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#WMS Layer Name',
+	          'WMS Service URL':'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#WMS Service URL',
+	          'WMS Layer URL':  'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#WMS Layer URL'
+                }
+	      ],
+	      'attachedTo': {'resourceType': 'file', 'id': parameters["fileid"]},
+              'agent': {
+                '@type': 'cat:extractor',
+	          'extractor_id': 'https://clowder.ncsa.illinois.edu/clowder/api/extractors/' + extractorName},
+	      'content': {
+	        'WMS Layer Name':  result['WMS Layer Name'],
+	        'WMS Service URL': result['WMS Service URL'],
+	        'WMS Layer URL':   result['WMS Layer URL']	 
+              }
+        }
+	extractors.upload_file_metadata(metadata, parameters)
 
 def extractGeotiff(inputfile, fileid):
     global geoServer, gs_username, gs_password, gs_workspace, raster_style, logger

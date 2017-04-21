@@ -13,7 +13,7 @@
 import os
 
 # name to show in rabbitmq queue list
-extractorName = os.getenv('RABBITMQ_QUEUE', "ncsa.geo.shp")
+extractorName = os.getenv('RABBITMQ_QUEUE', "ncsa.geotiff.preview")
 
 # URL to be used for connecting to rabbitmq
 rabbitmqURL = os.getenv('RABBITMQ_URI', "amqp://guest:guest@localhost/%2f")
@@ -22,10 +22,8 @@ rabbitmqURL = os.getenv('RABBITMQ_URI', "amqp://guest:guest@localhost/%2f")
 rabbitmqExchange = os.getenv('RABBITMQ_EXCHANGE', "clowder")
 
 # type of files to process
-messageType = ["*.file.multi.files-zipped.#",
-               "*.file.application.zip",
-               "*.file.application.x-zip",
-               "*.file.application.x-7z-compressed"]
+messageType = ["*.file.image.tiff",
+               "*.file.image.tif"]
 
 # trust certificates, set this to false for self signed certificates
 sslVerify = os.getenv('RABBITMQ_SSLVERIFY', False)
@@ -35,3 +33,4 @@ geoServer = os.getenv('GEOSERVER_URL', '')
 gs_username = os.getenv('GEOSERVER_USERNAME', 'admin')
 gs_password = os.getenv('GEOSERVER_PASSWORD', 'geoserver')
 gs_workspace = os.getenv('GEOSERVER_WORKSPACE', 'clowder')
+raster_style = "rasterTemplate.xml"

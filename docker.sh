@@ -51,7 +51,7 @@ create() {
 
   # create image using temp id
   local ID=$(uuidgen)
-  ${DEBUG} docker build  --tag $$ --file $3 $1
+  ${DEBUG} docker build  --tag $$ --file $1/$3 $1
   if [ $? -ne 0 ]; then
     echo "FAILED build of $1/Dockerfile"
     exit -1
@@ -91,9 +91,9 @@ create() {
 }
 
 # Create the docker containers
-create "." "extractors-geo-shp" "Dockerfile_shp"
-create "." "extractors-geo-tiff" "Dockerfile_tiff"
-
+create "./metadata.geotiff"   "extractors-geotiff-metadata" "Dockerfile"
+create "./preview.geotiff"     "extractors-geotiff-preview"  "Dockerfile"
+create "./preview.geoshp"     "extractors-geoshp-preview"   "Dockerfile"
 # remove latest tags
 for r in $LATEST; do
   ${DEBUG} docker rmi ${r}

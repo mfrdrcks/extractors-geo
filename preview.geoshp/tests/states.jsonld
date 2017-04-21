@@ -1,0 +1,68 @@
+{  
+   "metadata.jsonld":[  
+      {  
+         "content":{  
+            "content":{  
+               "WMS Layer URL":"https://geoserver.ncsa.illinois.edu/geoserver/wms?request=GetMap&layers=medici:tmpGD3sw0.zip2141919&bbox=-13885038.383,2870337.13079,-7455049.48918,6338174.05576&width=640&height=480&srs=EPSG:3857&format=image%2Fpng",
+               "WMS Layer Name":"medici:tmpGD3sw0.zip2141919",
+               "WMS Service URL":"https://geoserver.ncsa.illinois.edu/geoserver/wms"
+            },
+            "@context":[  
+               "https://clowder.ncsa.illinois.edu/contexts/metadata.jsonld",
+               {  
+                  "WMS Layer URL":"http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Layer URL",
+                  "WMS Layer Name":"http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Layer Name",
+                  "WMS Service URL":"http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Service URL"
+               }
+            ],
+            "attachedTo":{  
+               "resourceType":"file",
+               "id":"58b43567e4b000d17e7ace82"
+            },
+            "agent":{  
+               "extractor_id":"https://clowder.ncsa.illinois.edu/clowder/api/extractors/ncsa.geoshp.preview",
+               "@type":"cat:extractor"
+            }
+         },
+         "created_at":"Mon Feb 27 14:19:20 UTC 2017",
+         "agent":{  
+            "extractor_id":"http://clowder.ncsa.illinois.edu/extractors/deprecatedapi",
+            "@type":"cat:extractor",
+            "name":"http://clowder.ncsa.illinois.edu/extractors/deprecatedapi"
+         }
+      }
+   ],
+   "versusmetadata":[  
+
+   ],
+   "tags":[  
+
+   ],
+   "filename":"states.zip",
+   "technicalmetadata":[  
+      {  
+         "content":{  
+            "WMS Layer URL":"https://geoserver.ncsa.illinois.edu/geoserver/wms?request=GetMap&layers=medici:tmpGD3sw0.zip2141919&bbox=-13885038.383,2870337.13079,-7455049.48918,6338174.05576&width=640&height=480&srs=EPSG:3857&format=image%2Fpng",
+            "WMS Layer Name":"medici:tmpGD3sw0.zip2141919",
+            "WMS Service URL":"https://geoserver.ncsa.illinois.edu/geoserver/wms"
+         },
+         "@context":[  
+            "https://clowder.ncsa.illinois.edu/contexts/metadata.jsonld",
+            {  
+               "WMS Layer URL":"http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Layer URL",
+               "WMS Layer Name":"http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Layer Name",
+               "WMS Service URL":"http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Service URL"
+            }
+         ],
+         "attachedTo":{  
+            "resourceType":"file",
+            "id":"58b43567e4b000d17e7ace82"
+         },
+         "agent":{  
+            "extractor_id":"https://clowder.ncsa.illinois.edu/clowder/api/extractors/ncsa.geoshp.preview",
+            "@type":"cat:extractor"
+         }
+      }
+   ],
+   "id":"58b43567e4b000d17e7ace82"
+}

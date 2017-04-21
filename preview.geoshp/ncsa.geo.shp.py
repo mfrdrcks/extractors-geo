@@ -7,7 +7,7 @@ import subprocess
 
 from pyclowder import extractors
 
-from config_shp import *
+from config import *
 import gsclient as gs
 import zipshputils as zs
 
@@ -49,10 +49,29 @@ def process_file(parameters):
             extractors.status_update(result['errorMsg'][i], fileid, channel, header)
             logger.info('[%s] : %s', fileid, result['errorMsg'][i], extra={'fileid', fileid})
     else:
-        metadata = {}
-        metadata['WMS Layer Name'] = result['WMS Layer Name']
-        metadata['WMS Service URL'] = result['WMS Service URL']
-        metadata['WMS Layer URL'] = result['WMS Layer URL']
+	# Context URL
+        context_url = "https://clowder.ncsa.illinois.edu/contexts/metadata.jsonld"
+    	
+        metadata = {
+	      "@context": [
+	        context_url,
+	        {
+                  'WMS Layer Name': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Layer Name',
+	          'WMS Service URL':'http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Service URL',
+	          'WMS Layer URL':  'http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Layer URL'
+            }
+	      ],
+	      'attachedTo': {'resourceType': 'file', 'id': parameters["fileid"]},
+            'agent': {
+              '@type': 'cat:extractor',
+	          'extractor_id': 'https://clowder.ncsa.illinois.edu/clowder/api/extractors/' + extractorName},
+	      'content': {
+	        'WMS Layer Name':  result['WMS Layer Name'],
+	        'WMS Service URL': result['WMS Service URL'],
+	        'WMS Layer URL':   result['WMS Layer URL']	 
+          }
+        }
+
         extractors.upload_file_metadata(metadata, parameters)
 
 
@@ -70,19 +89,21 @@ def extractZipShp(inputfile, fileid):
     uploadfile = inputfile
 
     zipshp = zs.Utils(uploadfile)
-
     if not zipshp.hasError():
         msg['isZipShp'] = True    
         result = subprocess.check_output(['file', '-b', '--mime-type', inputfile], stderr=subprocess.STDOUT)
-        #if result.strip() != 'application/zip':    
-        uploadfile = zipshp.createZip(zipshp.tempDir)
+        logger.info('result.strip is [%s]', result.strip())
+	if result.strip() != 'application/zip':    
+	    msg['errorMsg'].append('result.strip is: ' + str(result.strip()))
+	    return msg
+
+	uploadfile = zipshp.createZip(zipshp.tempDir)
         gsclient = gs.Client(geoServer, gs_username, gs_password)
 
         if zipshp.getEpsg() == 'UNKNOWN' or zipshp.getEpsg() == None:
             epsg = "EPSG:4326"
         else:
             epsg = "EPSG:"+zipshp.getEpsg()
-        
         success = gsclient.uploadShapefile(gs_workspace, storeName, uploadfile, epsg)
 
         if success:
@@ -132,7 +153,6 @@ def extractZipShp(inputfile, fileid):
 
         if error['extent'] == 'UNKNOWN':
             msg['errorMsg'].append("The extent could not be calculated")
-
     return msg
     
 

@@ -1,0 +1,31 @@
+{  
+   "content":{  
+      "content":{  
+         "WMS Layer URL":"https://geoserver.ncsa.illinois.edu/geoserver/wms?request=GetMap&layers=testing:tmpADb0Df&bbox=-13805436.266,5773161.51856,-13791809.8603,5787397.56345&width=640&height=480&srs=EPSG:3857&format=image%2Fpng",
+         "WMS Layer Name":"testing:tmpADb0Df",
+         "WMS Service URL":"https://geoserver.ncsa.illinois.edu/geoserver/wms"
+      },
+      "@context":[  
+         "https://clowder.ncsa.illinois.edu/contexts/metadata.jsonld",
+         {  
+            "WMS Layer URL":"http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#WMS Layer URL",
+            "WMS Layer Name":"http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#WMS Layer Name",
+            "WMS Service URL":"http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#WMS Service URL"
+         }
+      ],
+      "attachedTo":{  
+         "resourceType":"file",
+         "id":"58b42182e4b099c1aeef537f"
+      },
+      "agent":{  
+         "extractor_id":"https://clowder.ncsa.illinois.edu/clowder/api/extractors/ncsa.geotiff.preview",
+         "@type":"cat:extractor"
+      }
+   },
+   "created_at":"Mon Feb 27 12:54:28 UTC 2017",
+   "agent":{  
+      "extractor_id":"http://clowder.ncsa.illinois.edu/extractors/deprecatedapi",
+      "@type":"cat:extractor",
+      "name":"http://clowder.ncsa.illinois.edu/extractors/deprecatedapi"
+   }
+}

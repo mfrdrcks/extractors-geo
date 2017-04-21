@@ -28,8 +28,8 @@ CMD ["extractor"]
 ENV RABBITMQ_URI="" \
     RABBITMQ_EXCHANGE="clowder" \
     RABBITMQ_VHOST="%2F" \
-    RABBITMQ_QUEUE="ncsa.geo.tiff" \
-    MAIN_SCRIPT="ncsa.geo.tiff.py" \
+    RABBITMQ_QUEUE="ncsa.geoshp.preview" \
+    MAIN_SCRIPT="ncsa.geo.shp.py" \
     GEOSERVER_URL="" \
     GEOSERVER_USERNAME="admin" \
     GEOSERVER_PASSWORD="geoserver" \
