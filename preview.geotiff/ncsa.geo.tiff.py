@@ -95,11 +95,7 @@ def extractGeotiff(inputfile, fileid):
         gsclient = gs.Client(geoServer, gs_username, gs_password)
 
         epsg = "EPSG:" + str(geotiffUtil.getEpsg())
-        
-        style = geotiffUtil.createStyle()
-        logger.debug("style created")
-        success = False
-        is_color_table = False
+        style = None
 
         # check if the input geotiff has a style,
         # you can do this by checking if there is any color table
@@ -108,6 +104,12 @@ def extractGeotiff(inputfile, fileid):
         color_table = uploadfile_band.GetColorTable()
         if color_table is not None:
             is_color_table = True
+            logger.debug("Geotiff has the style already")
+        else:
+            style = geotiffUtil.createStyle()
+            logger.debug("style created")
+        success = False
+        is_color_table = False
 
         if(is_color_table):
             success = gsclient.uploadGeotiff(gs_workspace, storeName, uploadfile, None, epsg)
