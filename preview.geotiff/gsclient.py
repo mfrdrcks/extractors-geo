@@ -149,10 +149,6 @@ class Client:
         if styleStr is not None:
             if self.uploadRasterStyle(storeName, styleStr):
                 self.logger.debug('Setting style')
-                #layer = self.getLayerByResource(resource)
-                #self.logger.debug('getLayerResource done')
-                ## stylename is same as storename
-                #self.setStyle(layer.name, storeName)
                 self.setStyle(self.layerName, storeName)
         
             self.logger.debug("style set: [DONE]")
