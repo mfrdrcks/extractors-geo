@@ -103,7 +103,7 @@ def extractGeotiff(inputfile, fileid):
 
         # check if the input geotiff has a style,
         # you can do this by checking if there is any color table
-        uploadfile_dataset = gdal.open(uploadfile)
+        uploadfile_dataset = gdal.Open(uploadfile)
         uploadfile_band = uploadfile_dataset.GetRasterBand(1)
         color_table = uploadfile_band.GetColorTable()
         if color_table is not None:

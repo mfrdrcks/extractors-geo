@@ -145,16 +145,17 @@ class Client:
             self.logger.debug('Setting projection' + projection)
             resource.projection = projection
             self.catalog.save(resource)
+
+        if styleStr is not None:
+            if self.uploadRasterStyle(storeName, styleStr):
+                self.logger.debug('Setting style')
+                #layer = self.getLayerByResource(resource)
+                #self.logger.debug('getLayerResource done')
+                ## stylename is same as storename
+                #self.setStyle(layer.name, storeName)
+                self.setStyle(self.layerName, storeName)
         
-        if self.uploadRasterStyle(storeName, styleStr):
-            self.logger.debug('Setting style')
-            #layer = self.getLayerByResource(resource)
-            #self.logger.debug('getLayerResource done') 
-            ## stylename is same as storename
-            #self.setStyle(layer.name, storeName)
-            self.setStyle(self.layerName, storeName)
-        
-        self.logger.debug("style set: [DONE]")
+            self.logger.debug("style set: [DONE]")
         return True
 
     def uploadRasterStyle(self, storeName, styleStr):
