@@ -103,18 +103,12 @@ def extractGeotiff(inputfile, fileid):
         uploadfile_band = uploadfile_dataset.GetRasterBand(1)
         color_table = uploadfile_band.GetColorTable()
         if color_table is not None:
-            is_color_table = True
             logger.debug("Geotiff has the style already")
         else:
             style = geotiffUtil.createStyle()
             logger.debug("style created")
-        success = False
-        is_color_table = False
 
-        if(is_color_table):
-            success = gsclient.uploadGeotiff(gs_workspace, storeName, uploadfile, None, epsg)
-        else:
-            success = gsclient.uploadGeotiff(gs_workspace, storeName, uploadfile, style, epsg)
+        success = gsclient.uploadGeotiff(gs_workspace, storeName, uploadfile, style, epsg)
         logger.debug("upload geotiff successfully")
         if success: 
             metadata = gsclient.mintMetadata(gs_workspace, storeName, geotiffUtil.getExtent())
