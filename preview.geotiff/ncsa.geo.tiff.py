@@ -72,7 +72,7 @@ def process_file(parameters):
 	        'WMS Layer URL':   result['WMS Layer URL']	 
               }
         }
-	extractors.upload_file_metadata(metadata, parameters)
+	extractors.upload_file_metadata_jsonld(mdata=metadata, parameters=parameters)
 
 def extractGeotiff(inputfile, fileid):
     global geoServer, gs_username, gs_password, gs_workspace, raster_style, logger
