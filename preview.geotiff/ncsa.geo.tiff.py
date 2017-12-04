@@ -7,6 +7,7 @@ import time
 import pika
 
 from pyclowder import extractors
+from osgeo import gdal
 
 from config import *
 import geotiffutils as gu
@@ -94,9 +95,19 @@ def extractGeotiff(inputfile, fileid):
         gsclient = gs.Client(geoServer, gs_username, gs_password)
 
         epsg = "EPSG:" + str(geotiffUtil.getEpsg())
-        
-        style = geotiffUtil.createStyle()
-        logger.debug("style created")
+        style = None
+
+        # check if the input geotiff has a style,
+        # you can do this by checking if there is any color table
+        uploadfile_dataset = gdal.Open(uploadfile)
+        uploadfile_band = uploadfile_dataset.GetRasterBand(1)
+        color_table = uploadfile_band.GetColorTable()
+        if color_table is not None:
+            logger.debug("Geotiff has the style already")
+        else:
+            style = geotiffUtil.createStyle()
+            logger.debug("style created")
+
         success = gsclient.uploadGeotiff(gs_workspace, storeName, uploadfile, style, epsg)
         logger.debug("upload geotiff successfully")
         if success: 
