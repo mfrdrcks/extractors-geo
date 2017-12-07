@@ -47,44 +47,50 @@ def process_file(parameters):
         # call actual program
         result = extractGeotiff(inputfile, fileid)
 
+        if not result['WMS Layer URL'] or not result['WMS Service URL'] or not result['WMS Layer URL']:
+            logger.debug("result['WMS Layer Name']: " + result['WMS Layer Name'])
+            logger.debug("result['WMS Service URL']: " + result['WMS Service URL'])
+            logger.debug("result['WMS Layer URL']: " + result['WMS Layer URL'])
+            logger.info('[%s], inputfile: %s has empty result', fileid, inputfile)
+
         # store results as metadata
-        if not result['isGeotiff'] or len(result['errorMsg']) > 0:
+        elif not result['isGeotiff'] or len(result['errorMsg']) > 0:
             channel = parameters['channel']
             header = parameters['header']
             for i in range(len(result['errorMsg'])):
                 extractors.status_update(result['errorMsg'][i], fileid, channel, header)
                 logger.info('[%s] : %s', fileid, result['errorMsg'][i], extra={'fileid': fileid})
         else:
-        	# Context URL
-        	context_url = "https://clowder.ncsa.illinois.edu/contexts/metadata.jsonld"
+            # Context URL
+            context_url = "https://clowder.ncsa.illinois.edu/contexts/metadata.jsonld"
 
-        	metadata = {
-    	      "@context": [
-    	        context_url,
-    	        {
-                      'WMS Layer Name': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#WMS Layer Name',
-    	          'WMS Service URL':'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#WMS Service URL',
-    	          'WMS Layer URL':  'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#WMS Layer URL'
+            metadata = {
+              "@context": [
+                context_url,
+                {
+                  'WMS Layer Name': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#WMS Layer Name',
+                  'WMS Service URL':'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#WMS Service URL',
+                  'WMS Layer URL':  'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#WMS Layer URL'
                     }
-    	      ],
-    	      'attachedTo': {'resourceType': 'file', 'id': parameters["fileid"]},
+              ],
+              'attachedTo': {'resourceType': 'file', 'id': parameters["fileid"]},
                   'agent': {
                     '@type': 'cat:extractor',
-    	          'extractor_id': 'https://clowder.ncsa.illinois.edu/clowder/api/extractors/' + extractorName},
-    	      'content': {
-    	        'WMS Layer Name':  result['WMS Layer Name'],
-    	        'WMS Service URL': result['WMS Service URL'],
-    	        'WMS Layer URL':   result['WMS Layer URL']	 
+                  'extractor_id': 'https://clowder.ncsa.illinois.edu/clowder/api/extractors/' + extractorName},
+              'content': {
+                'WMS Layer Name':  result['WMS Layer Name'],
+                'WMS Service URL': result['WMS Service URL'],
+                'WMS Layer URL':   result['WMS Layer URL']	 
                   }
             }
         
-        # register geotiff preview
-        (_, ext) = os.path.splitext(inputfile)
-        (_, tmpfile) = tempfile.mkstemp(suffix=ext)
-        extractors.upload_preview(previewfile=tmpfile, parameters=parameters)
-        logger.debug("upload previewer")
-        extractors.upload_file_metadata_jsonld(mdata=metadata, parameters=parameters)
-        logger.debug("upload file metadata")
+            # register geotiff preview
+            (_, ext) = os.path.splitext(inputfile)
+            (_, tmpfile) = tempfile.mkstemp(suffix=ext)
+            extractors.upload_preview(previewfile=tmpfile, parameters=parameters)
+            logger.debug("upload previewer")
+            extractors.upload_file_metadata_jsonld(mdata=metadata, parameters=parameters)
+            logger.debug("upload file metadata")
 
     except Exception as ex:
         logger.debug(ex.message)
