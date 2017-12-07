@@ -4,6 +4,8 @@ import requests
 import logging
 import json
 import subprocess
+import os
+import tempfile
 
 from pyclowder import extractors
 
@@ -35,44 +37,61 @@ def main():
 def process_file(parameters):
     """Process the compressed shapefile and create geoserver layer"""
 
-    fileid = parameters['fileid']
-    inputfile = parameters['inputfile']
+    tmpfile = None
+    try:
+        fileid = parameters['fileid']
+        inputfile = parameters['inputfile']
 
-    # call actual program
-    result = extractZipShp(inputfile, fileid)
+        # call actual program
+        result = extractZipShp(inputfile, fileid)
 
-    # store results as metadata
-    if not result['isZipShp'] or len(result['errorMsg']) > 0:
-        channel = parameters['channel']
-        header = parameters['header']
-        for i in range(len(result['errorMsg'])):
-            extractors.status_update(result['errorMsg'][i], fileid, channel, header)
-            logger.info('[%s] : %s', fileid, result['errorMsg'][i], extra={'fileid', fileid})
-    else:
-	# Context URL
-        context_url = "https://clowder.ncsa.illinois.edu/contexts/metadata.jsonld"
-    	
-        metadata = {
-	      "@context": [
-	        context_url,
-	        {
-                  'WMS Layer Name': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Layer Name',
-	          'WMS Service URL':'http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Service URL',
-	          'WMS Layer URL':  'http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Layer URL'
+        # store results as metadata
+        if not result['isZipShp'] or len(result['errorMsg']) > 0:
+            channel = parameters['channel']
+            header = parameters['header']
+            for i in range(len(result['errorMsg'])):
+                extractors.status_update(result['errorMsg'][i], fileid, channel, header)
+                logger.info('[%s] : %s', fileid, result['errorMsg'][i], extra={'fileid', fileid})
+        else:
+    	# Context URL
+            context_url = "https://clowder.ncsa.illinois.edu/contexts/metadata.jsonld"
+        	
+            metadata = {
+    	      "@context": [
+    	        context_url,
+    	        {
+                      'WMS Layer Name': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Layer Name',
+    	          'WMS Service URL':'http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Service URL',
+    	          'WMS Layer URL':  'http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Layer URL'
+                }
+    	      ],
+    	      'attachedTo': {'resourceType': 'file', 'id': parameters["fileid"]},
+                'agent': {
+                  '@type': 'cat:extractor',
+    	          'extractor_id': 'https://clowder.ncsa.illinois.edu/clowder/api/extractors/' + extractorName},
+    	      'content': {
+    	        'WMS Layer Name':  result['WMS Layer Name'],
+    	        'WMS Service URL': result['WMS Service URL'],
+    	        'WMS Layer URL':   result['WMS Layer URL']	 
+              }
             }
-	      ],
-	      'attachedTo': {'resourceType': 'file', 'id': parameters["fileid"]},
-            'agent': {
-              '@type': 'cat:extractor',
-	          'extractor_id': 'https://clowder.ncsa.illinois.edu/clowder/api/extractors/' + extractorName},
-	      'content': {
-	        'WMS Layer Name':  result['WMS Layer Name'],
-	        'WMS Service URL': result['WMS Service URL'],
-	        'WMS Layer URL':   result['WMS Layer URL']	 
-          }
-        }
-
-        extractors.upload_file_metadata(metadata, parameters)
+            
+            # register geoshp preview
+            (_, ext) = os.path.splitext(inputfile)
+            (_, tmpfile) = tempfile.mkstemp(suffix=ext)
+            extractors.upload_preview(previewfile=tmpfile, parameters=parameters)
+            logger.debug("upload previewer")
+            extractors.upload_file_metadata_jsonld(mdata=metadata, parameters=parameters)
+            logger.debug("upload file metadata")
+            
+    except Exception as ex:
+        logger.debug(ex.message)
+    finally:
+        try:
+            os.remove(tmpfile)
+            logger.debug("delete tmpfile: " + tmpfile)
+        except OSError:
+            pass
 
 
 def extractZipShp(inputfile, fileid):

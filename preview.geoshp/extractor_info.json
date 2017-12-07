@@ -10,9 +10,11 @@
 	"Bing Zhang <bing@illinois.edu>"
     ],
     "contexts": [
-        "WMS Layer Name": "http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Layer Name",
-        "WMS Service URL":"http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Service URL",
-        "WMS Layer URL":  "http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Layer URL"
+        {
+            "WMS Layer Name": "http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Layer Name",
+            "WMS Service URL":"http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Service URL",
+            "WMS Layer URL":  "http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Layer URL"
+        }
     ],
     "repository": [
         {
