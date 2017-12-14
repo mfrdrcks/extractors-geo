@@ -45,8 +45,7 @@ class Utils:
 
         # unzip compressed file
         self.logger.debug("Uncompress the file ...")
-        output = subprocess.check_output([zipUtil, 'x', '-o%s' % self.tempDir, shpzipfile],
-                                         shell=False, stderr=subprocess.STDOUT)
+        output = subprocess.check_output([zipUtil, 'x', '-o%s' % self.tempDir, shpzipfile], shell=False, stderr=subprocess.STDOUT)
         self.logger.debug(output)
         self.logger.debug(shpzipfile, "[DONE]")
 
@@ -76,7 +75,7 @@ class Utils:
         if self.tempDir != None:
             try:
                 import shutil
-                self.logger.debug("Deleting temp dir ", self.tempDir)
+                self.logger.debug("Deleting temp dir " + self.tempDir)
                 shutil.rmtree(self.tempDir)
             except OSError as exc:
                 if exc.errno != errno.ENOENT:
@@ -216,7 +215,7 @@ class Utils:
 
         return ','.join(map(str,r))
 
-    def createZip(self, destinationDir):
+    def createZip(self, destinationDir, newname):
         if self.zipShpProp['hasError']:
             self.logger.debug('createZip: Zipped Shapefile has error')
             return None
@@ -224,6 +223,13 @@ class Utils:
         # rezip the files in zip format if it is not a zip file
         self.zipShpProp['targetZip'] = os.path.join(destinationDir, self.zipShpProp['shpName']+'.zip')
         self.logger.debug("targetZip : "+ self.zipShpProp['targetZip'])
+
+        # rename all the files in the folder
+        self.zipShpProp['shpName'] = newname
+        filenames = os.listdir(self.tempDir)
+        for filename in filenames:
+            title, ext = os.path.splitext(os.path.basename(filename))
+            os.rename(self.tempDir + "/" + filename, self.tempDir + "/" + newname + ext)
         subprocess.check_call([self.zipUtil,'a','-tzip', self.zipShpProp['targetZip'], self.tempDir+'/*'], shell=False)
         return self.zipShpProp['targetZip']
 

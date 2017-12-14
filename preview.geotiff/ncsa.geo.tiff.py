@@ -33,6 +33,7 @@ def main():
                                    rabbitmqExchange=rabbitmqExchange,
                                    rabbitmqURL=rabbitmqURL)
 
+
 # Process the file and upload the results
 def process_file(parameters):
     """Process the geotiff and create geoserver layer"""
@@ -41,16 +42,17 @@ def process_file(parameters):
 
     fileid = parameters['fileid']
     inputfile = parameters['inputfile']
+    filename = parameters['filename']
     tmpfile = None
+
+    # TODO: add the method to check if the geoserver has csw
+    has_csw = True
 
     try:
         # call actual program
-        result = extractGeotiff(inputfile, fileid)
+        result = extractGeotiff(inputfile, fileid, filename, has_csw)
 
         if not result['WMS Layer URL'] or not result['WMS Service URL'] or not result['WMS Layer URL']:
-            logger.debug("result['WMS Layer Name']: " + result['WMS Layer Name'])
-            logger.debug("result['WMS Service URL']: " + result['WMS Service URL'])
-            logger.debug("result['WMS Layer URL']: " + result['WMS Layer URL'])
             logger.info('[%s], inputfile: %s has empty result', fileid, inputfile)
 
         # store results as metadata
@@ -64,26 +66,51 @@ def process_file(parameters):
             # Context URL
             context_url = "https://clowder.ncsa.illinois.edu/contexts/metadata.jsonld"
 
-            metadata = {
-              "@context": [
-                context_url,
-                {
-                  'WMS Layer Name': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#WMS Layer Name',
-                  'WMS Service URL':'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#WMS Service URL',
-                  'WMS Layer URL':  'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#WMS Layer URL'
+            if has_csw:
+                metadata = {
+                    "@context": [
+                        context_url,
+                        {
+                            'WMS Layer Name': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#WMS Layer Name',
+                            'WMS Service URL': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#WMS Service URL',
+                            'WMS Layer URL': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#WMS Layer URL',
+                            'CSW Service URL': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#CSW Service URL',
+                            'CSW Record URL':'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#CSW Record URL'
+                        }
+                    ],
+                    'attachedTo': {'resourceType': 'file', 'id': parameters["fileid"]},
+                    'agent': {
+                        '@type': 'cat:extractor',
+                        'extractor_id': 'https://clowder.ncsa.illinois.edu/clowder/api/extractors/' + extractorName},
+                    'content': {
+                        'WMS Layer Name': result['WMS Layer Name'],
+                        'WMS Service URL': result['WMS Service URL'],
+                        'WMS Layer URL': result['WMS Layer URL'],
+                        'CSW Service URL': result['CSW Service URL'],
+                        'CSW Record URL': result['CSW Record URL']
                     }
-              ],
-              'attachedTo': {'resourceType': 'file', 'id': parameters["fileid"]},
-                  'agent': {
-                    '@type': 'cat:extractor',
-                  'extractor_id': 'https://clowder.ncsa.illinois.edu/clowder/api/extractors/' + extractorName},
-              'content': {
-                'WMS Layer Name':  result['WMS Layer Name'],
-                'WMS Service URL': result['WMS Service URL'],
-                'WMS Layer URL':   result['WMS Layer URL']	 
-                  }
-            }
-        
+                }
+            else:
+                metadata = {
+                    "@context": [
+                        context_url,
+                        {
+                            'WMS Layer Name': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#WMS Layer Name',
+                            'WMS Service URL': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#WMS Service URL',
+                            'WMS Layer URL': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#WMS Layer URL'
+                        }
+                    ],
+                    'attachedTo': {'resourceType': 'file', 'id': parameters["fileid"]},
+                    'agent': {
+                        '@type': 'cat:extractor',
+                        'extractor_id': 'https://clowder.ncsa.illinois.edu/clowder/api/extractors/' + extractorName},
+                    'content': {
+                        'WMS Layer Name': result['WMS Layer Name'],
+                        'WMS Service URL': result['WMS Service URL'],
+                        'WMS Layer URL': result['WMS Layer URL']
+                    }
+                }
+
             # register geotiff preview
             (_, ext) = os.path.splitext(inputfile)
             (_, tmpfile) = tempfile.mkstemp(suffix=ext)
@@ -101,7 +128,8 @@ def process_file(parameters):
         except OSError:
             pass
 
-def extractGeotiff(inputfile, fileid):
+
+def extractGeotiff(inputfile, fileid, filename, has_csw):
     global geoServer, gs_username, gs_password, gs_workspace, raster_style, logger
 
     storeName = fileid
@@ -110,14 +138,14 @@ def extractGeotiff(inputfile, fileid):
     msg['WMS Layer Name'] = ''
     msg['WMS Service URL'] = ''
     msg['WMS Layer URL'] = ''
-    msg['isGeotiff'] = False    
+    msg['isGeotiff'] = False
 
     uploadfile = inputfile
 
     geotiffUtil = gu.Utils(uploadfile, raster_style)
 
     if not geotiffUtil.hasError():
-        msg['isGeotiff'] = True    
+        msg['isGeotiff'] = True
         gsclient = gs.Client(geoServer, gs_username, gs_password)
 
         epsg = "EPSG:" + str(geotiffUtil.getEpsg())
@@ -134,10 +162,12 @@ def extractGeotiff(inputfile, fileid):
             style = geotiffUtil.createStyle()
             logger.debug("style created")
 
-        success = gsclient.uploadGeotiff(gs_workspace, storeName, uploadfile, style, epsg)
+        # merge file name and id and make a new store name
+        combined_name = filename + "_" + storeName
+        success = gsclient.uploadGeotiff(gs_workspace, combined_name, uploadfile, filename, style, epsg)
         logger.debug("upload geotiff successfully")
-        if success: 
-            metadata = gsclient.mintMetadata(gs_workspace, storeName, geotiffUtil.getExtent())
+        if success:
+            metadata = gsclient.mintMetadata(gs_workspace, combined_name, geotiffUtil.getExtent(), has_csw)
             logger.debug("mintMetadata obtained")
             if len(metadata) == 0:
                 msg['errorMsg'].append("Coulnd't generate metadata")
@@ -145,6 +175,9 @@ def extractGeotiff(inputfile, fileid):
                 msg['WMS Layer Name'] = metadata['WMS Layer Name']
                 msg['WMS Service URL'] = metadata['WMS Service URL']
                 msg['WMS Layer URL'] = metadata['WMS Layer URL']
+                if has_csw:
+                    msg['CSW Service URL'] = metadata['CSW Service URL']
+                    msg['CSW Record URL'] = metadata['CSW Record URL']
         else:
             msg['errorMsg'].append("Fail to upload the file to geoserver")
     else:
@@ -160,7 +193,7 @@ def extractGeotiff(inputfile, fileid):
             msg['errorMsg'].append("The extent could not be calculated")
 
     return msg
-    
+
 
 if __name__ == '__main__':
     main()

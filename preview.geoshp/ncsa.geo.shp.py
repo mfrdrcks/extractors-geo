@@ -41,9 +41,13 @@ def process_file(parameters):
     try:
         fileid = parameters['fileid']
         inputfile = parameters['inputfile']
+        filename = parameters['filename']
+
+        # TODO: add the method to check if the geoserver has csw
+        has_csw = True
 
         # call actual program
-        result = extractZipShp(inputfile, fileid)
+        result = extractZipShp(inputfile, fileid, filename, has_csw)
 
         # store results as metadata
         if not result['isZipShp'] or len(result['errorMsg']) > 0:
@@ -53,29 +57,54 @@ def process_file(parameters):
                 extractors.status_update(result['errorMsg'][i], fileid, channel, header)
                 logger.info('[%s] : %s', fileid, result['errorMsg'][i], extra={'fileid', fileid})
         else:
-    	# Context URL
+            # Context URL
             context_url = "https://clowder.ncsa.illinois.edu/contexts/metadata.jsonld"
-        	
-            metadata = {
-    	      "@context": [
-    	        context_url,
-    	        {
-                      'WMS Layer Name': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Layer Name',
-    	          'WMS Service URL':'http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Service URL',
-    	          'WMS Layer URL':  'http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Layer URL'
+
+            if has_csw:
+                metadata = {
+                    "@context": [
+                        context_url,
+                        {
+                            'WMS Layer Name': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Layer Name',
+                            'WMS Service URL': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Service URL',
+                            'WMS Layer URL': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Layer URL',
+                            'CSW Service URL': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#CSW Service URL',
+                            'CSW Record URL': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#CSW Record URL'
+                        }
+                    ],
+                    'attachedTo': {'resourceType': 'file', 'id': parameters["fileid"]},
+                    'agent': {
+                        '@type': 'cat:extractor',
+                        'extractor_id': 'https://clowder.ncsa.illinois.edu/clowder/api/extractors/' + extractorName},
+                    'content': {
+                        'WMS Layer Name': result['WMS Layer Name'],
+                        'WMS Service URL': result['WMS Service URL'],
+                        'WMS Layer URL': result['WMS Layer URL'],
+                        'CSW Service URL': result['CSW Service URL'],
+                        'CSW Record URL': result['CSW Record URL']
+                    }
                 }
-    	      ],
-    	      'attachedTo': {'resourceType': 'file', 'id': parameters["fileid"]},
-                'agent': {
-                  '@type': 'cat:extractor',
-    	          'extractor_id': 'https://clowder.ncsa.illinois.edu/clowder/api/extractors/' + extractorName},
-    	      'content': {
-    	        'WMS Layer Name':  result['WMS Layer Name'],
-    	        'WMS Service URL': result['WMS Service URL'],
-    	        'WMS Layer URL':   result['WMS Layer URL']	 
-              }
-            }
-            
+            else:
+                metadata = {
+                    "@context": [
+                        context_url,
+                        {
+                            'WMS Layer Name': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Layer Name',
+                            'WMS Service URL': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Service URL',
+                            'WMS Layer URL': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Layer URL'
+                        }
+                    ],
+                    'attachedTo': {'resourceType': 'file', 'id': parameters["fileid"]},
+                    'agent': {
+                        '@type': 'cat:extractor',
+                        'extractor_id': 'https://clowder.ncsa.illinois.edu/clowder/api/extractors/' + extractorName},
+                    'content': {
+                        'WMS Layer Name': result['WMS Layer Name'],
+                        'WMS Service URL': result['WMS Service URL'],
+                        'WMS Layer URL': result['WMS Layer URL']
+                    }
+                }
+
             # register geoshp preview
             (_, ext) = os.path.splitext(inputfile)
             (_, tmpfile) = tempfile.mkstemp(suffix=ext)
@@ -83,7 +112,7 @@ def process_file(parameters):
             logger.debug("upload previewer")
             extractors.upload_file_metadata_jsonld(mdata=metadata, parameters=parameters)
             logger.debug("upload file metadata")
-            
+
     except Exception as ex:
         logger.debug(ex.message)
     finally:
@@ -94,62 +123,67 @@ def process_file(parameters):
             pass
 
 
-def extractZipShp(inputfile, fileid):
+def extractZipShp(inputfile, fileid, filename, has_csw):
     global geoServer, gs_username, gs_password, gs_workspace
 
-    storeName = fileid
+    storename = fileid
     msg = {}
     msg['errorMsg'] = []
     msg['WMS Layer Name'] = ''
     msg['WMS Service URL'] = ''
     msg['WMS Layer URL'] = ''
-    msg['isZipShp'] = False    
+    msg['isZipShp'] = False
 
     uploadfile = inputfile
+    combined_name = filename + "_" + storename
 
     zipshp = zs.Utils(uploadfile)
     if not zipshp.hasError():
-        msg['isZipShp'] = True    
+        msg['isZipShp'] = True
         result = subprocess.check_output(['file', '-b', '--mime-type', inputfile], stderr=subprocess.STDOUT)
         logger.info('result.strip is [%s]', result.strip())
-	if result.strip() != 'application/zip':    
-	    msg['errorMsg'].append('result.strip is: ' + str(result.strip()))
-	    return msg
+        if result.strip() != 'application/zip':
+            msg['errorMsg'].append('result.strip is: ' + str(result.strip()))
+            return msg
 
-	uploadfile = zipshp.createZip(zipshp.tempDir)
+        uploadfile = zipshp.createZip(zipshp.tempDir, combined_name)
         gsclient = gs.Client(geoServer, gs_username, gs_password)
 
         if zipshp.getEpsg() == 'UNKNOWN' or zipshp.getEpsg() == None:
             epsg = "EPSG:4326"
         else:
-            epsg = "EPSG:"+zipshp.getEpsg()
-        success = gsclient.uploadShapefile(gs_workspace, storeName, uploadfile, epsg)
+            epsg = "EPSG:" + zipshp.getEpsg()
+
+        success = gsclient.uploadShapefile(gs_workspace, combined_name, uploadfile, epsg)
 
         if success:
             logger.debug("---->success")
-            metadata = gsclient.mintMetadata(gs_workspace, storeName, zipshp.getExtent())
+            metadata = gsclient.mintMetadata(gs_workspace, combined_name, zipshp.getExtent(), has_csw)
             # TODO: create thumbnail and upload it to Medici
-            #thumbPath = gsclient.createThumbnail(gs_workspace, storeName, zipshp.getExtent(), "200", "180")
-            
+            # thumbPath = gsclient.createThumbnail(gs_workspace, storeName, zipshp.getExtent(), "200", "180")
+
             if len(metadata) == 0:
                 msg['errorMsg'].append("Coulnd't generate metadata")
             else:
                 msg['WMS Layer Name'] = metadata['WMS Layer Name']
                 msg['WMS Service URL'] = metadata['WMS Service URL']
                 msg['WMS Layer URL'] = metadata['WMS Layer URL']
+                if has_csw:
+                    msg['CSW Service URL'] = metadata['CSW Service URL']
+                    msg['CSW Record URL'] = metadata['CSW Record URL']
         else:
             msg['errorMsg'].append("Fail to upload the file to geoserver")
     else:
-        error = zipshp.zipShpProp    
+        error = zipshp.zipShpProp
         if error['shpFile'] == None:
-            msg['isZipShp'] = False    
+            msg['isZipShp'] = False
             msg['errorMsg'].append("normal compressed file")
             return msg
 
         if error['hasDir']:
             msg['errorMsg'].append("a compressed shapefile can not have directory")
             return msg
-            
+
         if error['numShp'] > 1:
             msg['errorMsg'].append("a compressed shapefile can not have multiple shpefiles")
             return msg
@@ -173,7 +207,6 @@ def extractZipShp(inputfile, fileid):
         if error['extent'] == 'UNKNOWN':
             msg['errorMsg'].append("The extent could not be calculated")
     return msg
-    
 
 if __name__ == '__main__':
     main()

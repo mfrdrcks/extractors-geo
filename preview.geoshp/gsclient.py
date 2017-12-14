@@ -11,6 +11,7 @@ class Client:
     def __init__ (self, geoserver, username, password):
         self.restserver = urlparse.urljoin(geoserver, 'rest')
         self.wmsserver = urlparse.urljoin(geoserver, 'wms')
+        self.cswserver = urlparse.urljoin(geoserver, 'csw')
         self.username = username
         self.password = password
         self.catalog = Catalog(self.restserver, self.username, self.password) 
@@ -22,12 +23,12 @@ class Client:
         self.logger = logging.getLogger("gsclient")
 
     ## this method assume that there is 1 store per layer
-    def getResourceByStoreName(self, storeName, workspace):
+    def getResourceByStoreName(self, storename, workspace):
         if self.resource != None:
             self.logger.debug("resource instance found; no need to fetch")
             return self.resource
         self.logger.debug("catalog.get_store called")
-        store = self.catalog.get_store(storeName, workspace)
+        store = self.catalog.get_store(storename, workspace)
         self.logger.debug("catalog.get_resources called based on store")
         resources = self.catalog.get_resources(store=store)
         self.logger.debug("fetched resources from server")
@@ -41,12 +42,12 @@ class Client:
         layers = self.catalog.get_layers()
         return layers
 
-    def getLayerByStoreName(self, storeName):
+    def getLayerByStoreName(self, storename):
         self.logger.debug("getLayerbystore name started")
         layers = self.catalog.get_layers()
     
         for layer in layers:
-            if layer.resource.store.name == storeName:
+            if layer.resource.store.name == storename:
                 self.logger.debug("found the layer by store name")
                 return layer
         return None
@@ -65,14 +66,14 @@ class Client:
             self.layer = layers[0]
             return self.layer
 
-    def mintMetadata(self, workspace, storeName, extent):
+    def mintMetadata(self, workspace, storename, extent, has_csw=False):
         self.logger.debug("Creating wms metadata ... ") 
         metadata = {}
         layername = None
         if self.layerName == None:
             if self.layer == None:
                 self.logger.debug("getResourceByStoreName..")
-                resource = self.getResourceByStoreName(storeName, workspace)
+                resource = self.getResourceByStoreName(storename, workspace)
                 self.logger.debug("getLayerByResource ...")
                 layer = self.getLayerByResource(resource)
                                 #layername = layer.name 
@@ -92,13 +93,16 @@ class Client:
         metadata['WMS Layer Name'] = wmsLayerName
         metadata['WMS Service URL'] = self.wmsserver
         metadata['WMS Layer URL'] = self.wmsserver+'?request=GetMap&layers='+wmsLayerName+'&bbox='+extent+'&width=640&height=480&srs=EPSG:3857&format=image%2Fpng'
+        if has_csw:
+            metadata['CSW Service URL'] = self.cswserver
+            metadata['CSW Record URL'] = self.cswserver + "?service=CSW&version=2.0.2&request=GetRecordById&elementsetname=summary&id=" +  workspace + ":" + layername + "&typeNames=gmd:MD_Metadata&resultType=results&elementSetName=full&outputSchema=http://www.isotc211.org/2005/gmd"
 
         self.logger.debug('[DONE]')
         return metadata
 
-    def uploadShapefile(self, workspace, storeName, filename, projection):
+    def uploadShapefile(self, workspace, storename, filename, projection):
         self.logger.debug("Uploading shapefile" + filename +"...")
-        url = self.restserver+"/workspaces/"+workspace+"/datastores/"+storeName+"/file.shp"
+        url = self.restserver+"/workspaces/"+workspace+"/datastores/" + storename + "/file.shp"
         response = None
         with open(filename, 'rb') as f:
             response = requests.put(url, headers={'content-type':'application/zip'}, auth=(self.username, self.password),data=f)
@@ -110,7 +114,7 @@ class Client:
 
         # setup projection
         
-        resource = self.getResourceByStoreName(storeName, workspace)
+        resource = self.getResourceByStoreName(storename, workspace)
 
         if resource.projection == None:
             self.logger.debug('Setting projection' + projection)
@@ -118,14 +122,14 @@ class Client:
             self.catalog.save(resource)
         self.logger.debug("[DONE]")
         name, ext = os.path.splitext(os.path.basename(filename))
-        self.layerName = name
+        self.layerName = storename
         return True
 
-    def uploadGeotiff(self, workspace, storeName, filename, styleStr, projection):
+    def uploadGeotiff(self, workspace, storename, filename, title, styleStr, projection):
         self.logger.debug("Uploading geotiff" + filename + "...")
         name, ext = os.path.splitext(os.path.basename(filename))
         # TODO need to check the coverage name to avoid duplication
-        url = self.restserver+"/workspaces/"+workspace+"/coveragestores/"+storeName+"/file.geotiff"+"?coverageName="+name
+        url = self.restserver+"/workspaces/"+workspace+"/coveragestores/" + storename + "/file.geotiff" + "?coverageName=" + storename
         response = None
         self.logger.debug(url)
         with open(filename, 'rb') as f:
@@ -136,9 +140,9 @@ class Client:
             self.logger.error(response.text)
             self.logger.debug("[DONE]")
             return False
-        self.layerName = name
+        self.layerName = storename
 
-        resource = self.getResourceByStoreName(storeName, workspace)
+        resource = self.getResourceByStoreName(storename, workspace)
 
         # setting projection
         if resource.projection == None:
@@ -147,30 +151,30 @@ class Client:
             self.catalog.save(resource)
 
         if styleStr is not None:
-            if self.uploadRasterStyle(storeName, styleStr):
+            if self.uploadRasterStyle(storename, styleStr):
                 self.logger.debug('Setting style')
-                self.setStyle(self.layerName, storeName)
+                self.setStyle(self.layerName, storename)
         
             self.logger.debug("style set: [DONE]")
         return True
 
-    def uploadRasterStyle(self, storeName, styleStr):
+    def uploadRasterStyle(self, storename, styleStr):
         if styleStr == 'None': 
             return False
-        sldFileName = os.path.join(self.tempDir, storeName+".sld")
+        sldFileName = os.path.join(self.tempDir, storename + ".sld")
         sldFile = open(sldFileName, 'w')
         sldFile.write(styleStr)
         sldFile.close()
 
         url = self.restserver+"/styles"
         self.logger.debug(url)
-        response = requests.post(url, headers={'content-type':'text/xml'}, auth=(self.username, self.password),data="<style><name>"+storeName+"</name><filename>"+storeName+".sld</filename></style>")
+        response = requests.post(url, headers={'content-type':'text/xml'}, auth=(self.username, self.password), data="<style><name>" + storename + "</name><filename>" + storename + ".sld</filename></style>")
         if response.status_code != 201:
             self.logger.debug('error' + response.text)
             return False
 
         with open(sldFileName, 'rb') as f:
-            response = requests.put(url+"/"+storeName, headers={'content-type':'application/vnd.ogc.sld+xml'}, auth=(self.username, self.password),data=f)
+            response = requests.put(url +"/" + storename, headers={'content-type': 'application/vnd.ogc.sld+xml'}, auth=(self.username, self.password), data=f)
         self.logger.debug(response.status_code)
         self.logger.debug(response.text)
         self.logger.debug("uploaded the raster style")
@@ -189,13 +193,13 @@ class Client:
         layer.default_style = stylename
         self.catalog.save(layer)
 
-    def createThumbnail(self, workspace, storeName, extent, width, height):
+    def createThumbnail(self, workspace, storename, extent, width, height):
         self.logger.debug('Creating Thumbnail ...')
         layername = None
         if self.layerName == None:
             if self.layer == None:
                 self.logger.debug("getResourceByStoreName..")
-                resource = self.getResourceByStoreName(storeName, workspace)
+                resource = self.getResourceByStoreName(storename, workspace)
                 self.logger.debug("getLayerByResource ...")
                 layer = self.getLayerByResource(resource)
                 self.logger.debug("done getting layer name")
