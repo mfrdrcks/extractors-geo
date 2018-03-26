@@ -15,6 +15,16 @@ from config import *
 import geotiffutils as gu
 import gsclient as gs
 
+# to post layer to pycsw
+import os, sys, inspect
+# following lines should be changed to something like this after pycsw.utils package got merged
+# add the line in requirements.txt file
+# https://opensource.ncsa.illinois.edu/bitbucket/projects/CATS/repos/extractors-geo/browse#egg=extractors-geo
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+sys.path.insert(0, os.path.join(parentdir, "pycsw.utils"))
+import pycsw_utils as pycswutils
+
 
 def main():
     global extractorName, messageType, rabbitmqExchange, rabbitmqURL, logger
@@ -111,6 +121,9 @@ def process_file(parameters):
                     }
                 }
 
+            # post geotiff layer to pycsw
+            result = post_layer_to_pycsw(result['WMS Layer Name'], result['WMS Layer URL'])
+
             # register geotiff preview
             (_, ext) = os.path.splitext(inputfile)
             (_, tmpfile) = tempfile.mkstemp(suffix=ext)
@@ -128,6 +141,57 @@ def process_file(parameters):
         except OSError:
             pass
 
+"""
+post layer information to pycsw server
+"""
+def post_layer_to_pycsw(layer_name, layer_url):
+    bbox_list = parse_bbox_from_url(layer_url)
+    layer_title = layer_name.split(':')[1]
+
+    is_feature = False  # true: shapefile, false: geotiff
+    xml_identifier = layer_name
+    xml_reference = layer_name
+
+    xml_subject = layer_title
+    xml_keyword = [layer_name.split(':')[0], layer_name.split(':')[1]]
+    xml_title = layer_title
+    xml_lower_corner = str(bbox_list[0]) + " " + str(bbox_list[1])
+    xml_upper_corner = str(bbox_list[2]) + " " + str(bbox_list[3])
+    if (is_feature):
+        xml_isFeature = 'features'
+    else:
+        xml_isFeature = 'GeoTIFF'
+
+    xml_str = pycswutils.construct_insert_xml(xml_identifier, xml_reference, xml_isFeature, xml_subject,
+                                              xml_keyword,
+                                              xml_title,
+                                              xml_lower_corner, xml_upper_corner)
+    result = pycswutils.post_insert_xml(xml_str)
+
+    return result
+
+"""
+parse bounding box information from layer url
+"""
+def parse_bbox_from_url(url):
+    bbox_list = []
+    for line in url.split('&'):
+        elements = line.split("=")
+        if (elements[0]).lower() == 'bbox':
+            for bbox in elements[1].split(','):
+                bbox_list.append(bbox)
+
+    bbox_list = pycswutils.convert_bounding_box_3857_4326(bbox_list)
+    b1 = bbox_list[0]
+    b2 = bbox_list[1]
+    b3 = bbox_list[2]
+    b4 = bbox_list[3]
+    bbox_list[0] = b2
+    bbox_list[1] = b1
+    bbox_list[2] = b4
+    bbox_list[3] = b3
+
+    return bbox_list
 
 def extractGeotiff(inputfile, fileid, filename, has_csw):
     global geoServer, gs_username, gs_password, gs_workspace, raster_style, logger

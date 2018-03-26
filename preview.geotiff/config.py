@@ -34,3 +34,6 @@ gs_username = os.getenv('GEOSERVER_USERNAME', 'admin')
 gs_password = os.getenv('GEOSERVER_PASSWORD', 'geoserver')
 gs_workspace = os.getenv('GEOSERVER_WORKSPACE', 'clowder')
 raster_style = "rasterTemplate.xml"
+
+# PyCSW setting
+pycsw_server = os.getenv('PYCSW_URL', '')
