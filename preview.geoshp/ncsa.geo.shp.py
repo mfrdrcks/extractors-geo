@@ -46,6 +46,7 @@ def main():
 # Process the file and upload the results
 def process_file(parameters):
     """Process the compressed shapefile and create geoserver layer"""
+
     tmpfile = None
     try:
         fileid = parameters['fileid']
