@@ -15,7 +15,7 @@ import logging
 
 class Utils:
     zipUtil = "/usr/bin/7z"
-    
+
     def __init__(self, shpzipfile, zipUtil="/usr/bin/7z"):
         self.zipUtil = zipUtil
         self.shpzipfile = shpzipfile
