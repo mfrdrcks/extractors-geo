@@ -175,6 +175,8 @@ def parse_bbox_from_url(url):
                 bbox_list.append(bbox)
 
     bbox_list = pycswutils.convert_bounding_box_3857_4326(bbox_list)
+
+    # x and y should be switched in the xml to insert it to pycsw
     b1 = bbox_list[0]
     b2 = bbox_list[1]
     b3 = bbox_list[2]
@@ -203,8 +205,7 @@ def extractZipShp(inputfile, fileid, filename, has_csw):
     zipshp = zs.Utils(uploadfile)
     if not zipshp.hasError():
         msg['isZipShp'] = True
-        # result = subprocess.check_output(['file', '-b', '--mime-type', inputfile], stderr=subprocess.STDOUT)
-        result = 'application/zip'
+        result = subprocess.check_output(['file', '-b', '--mime-type', inputfile], stderr=subprocess.STDOUT)
         logger.info('result.strip is [%s]', result.strip())
         if result.strip() != 'application/zip':
             msg['errorMsg'].append('result.strip is: ' + str(result.strip()))

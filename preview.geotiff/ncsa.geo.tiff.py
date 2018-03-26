@@ -182,6 +182,8 @@ def parse_bbox_from_url(url):
                 bbox_list.append(bbox)
 
     bbox_list = pycswutils.convert_bounding_box_3857_4326(bbox_list)
+
+    # x and y should be switched in the xml to insert it to pycsw
     b1 = bbox_list[0]
     b2 = bbox_list[1]
     b3 = bbox_list[2]
