@@ -16,8 +16,7 @@ import logging
 class Utils:
     zipUtil = "/usr/bin/7z"
 
-    # def __init__(self, shpzipfile, zipUtil="/usr/bin/7z"):
-    def __init__(self, shpzipfile, zipUtil="C:\\Users\\ywkim\\Downloads\\7z\\x64\\7za.exe"):
+    def __init__(self, shpzipfile, zipUtil="/usr/bin/7z"):
         self.zipUtil = zipUtil
         self.shpzipfile = shpzipfile
 
