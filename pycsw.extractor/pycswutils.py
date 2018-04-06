@@ -53,6 +53,33 @@ def construct_insert_xml(xml_identifier, xml_reference, xml_isFeature, xml_subje
 
     return xml_temp_str
 
+
+"""
+parse bounding box information from layer url
+"""
+def parse_bbox_from_url(url):
+    bbox_list = []
+    for line in url.split('&'):
+        elements = line.split("=")
+        if (elements[0]).lower() == 'bbox':
+            for bbox in elements[1].split(','):
+                bbox_list.append(bbox)
+
+    bbox_list = pu.convert_bounding_box_3857_4326(bbox_list)
+
+    # x and y should be switched in the xml to insert it to pycsw
+    b1 = bbox_list[0]
+    b2 = bbox_list[1]
+    b3 = bbox_list[2]
+    b4 = bbox_list[3]
+    bbox_list[0] = b2
+    bbox_list[1] = b1
+    bbox_list[2] = b4
+    bbox_list[3] = b3
+
+    return bbox_list
+
+
 """
 post xml to pycsw
 """

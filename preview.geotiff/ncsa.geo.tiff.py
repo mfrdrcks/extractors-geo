@@ -23,7 +23,7 @@ import os, sys, inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, os.path.join(parentdir, "pycsw.utils"))
-import pycsw_utils as pycswutils
+import pycswutils as pycswutils
 
 
 def main():
