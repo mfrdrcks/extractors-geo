@@ -13,7 +13,7 @@
 import os
 
 # name to show in rabbitmq queue list
-extractorName = os.getenv('RABBITMQ_QUEUE', "ncsa.geoshp.preview")
+extractorName = os.getenv('RABBITMQ_QUEUE', "ncsa.pycsw.extractor")
 
 # URL to be used for connecting to rabbitmq
 rabbitmqURL = os.getenv('RABBITMQ_URI', "amqp://guest:guest@localhost/%2f")
@@ -31,10 +31,10 @@ messageType = ["*.file.multi.files-zipped.#",
 sslVerify = os.getenv('RABBITMQ_SSLVERIFY', False)
 
 # Geoserver setting
-geoServer = os.getenv('GEOSERVER_URL', 'https://agri-clowder.ncsa.illinois.edu/geoserver/')
+geoServer = os.getenv('GEOSERVER_URL', '')
 gs_username = os.getenv('GEOSERVER_USERNAME', 'admin')
-gs_password = os.getenv('GEOSERVER_PASSWORD', 'tX8jhwhk6MWcafu')
-gs_workspace = os.getenv('GEOSERVER_WORKSPACE', 'test')
+gs_password = os.getenv('GEOSERVER_PASSWORD', 'geoserver')
+gs_workspace = os.getenv('GEOSERVER_WORKSPACE', 'clowder')
 
 # PyCSW setting
-pycsw_server = os.getenv('PYCSW_URL', 'http://10.193.162.233:8000/pycsw')
+pycsw_server = os.getenv('PYCSW_URL', '')
