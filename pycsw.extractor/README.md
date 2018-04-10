@@ -1,13 +1,14 @@
-# Clowder Geoshp Metadata Extractor
+# Clowder Geoshp/GeoTiff Metadata for PyCSW
 
 Overview
-geoshp extractor takes .zip input file and communicates with GeoServer (https://geoserver.ncsa.illinois.edu/geoserver/web/) to retrieve WMS metadata.
+
+pycsw extractor takes .zip or geotiff input file and communicates with PyCSW server to retrieve CSW metadata.
 
 ## Build a docker image
-      docker build -t clowder/extractors-geoshp-preview .
+      docker build -t clowder/extractors-geo-pycsw.
 
 ## Test the docker container image:
-      docker run --name=geoshp -d --restart=always -e 'RABBITMQ_URI=amqp://user1:pass1@rabbitmq.ncsa.illinois.edu:5672/clowder-dev' -e 'RABBITMQ_EXCHANGE=clowder' -e 'TZ=/usr/share/zoneinfo/US/Central' -e 'REGISTRATION_ENDPOINTS=http://dts-dev.ncsa.illinois.edu:9000/api/extractors?key=key1'  -e 'GEOSERVER_URL=geoserver url' -e 'GEOSERVER_PASSWORD=passwd' -e 'docker exec -it -u bdcli d47316abcb19 bashGEOSERVER_WORKSPACE=testing' -e 'GEOSERVER_USERNAME=username' clowder/extractors-geoshp-preview
+      docker run --name=geo-pycsw -d --restart=always -e 'RABBITMQ_URI=amqp://user1:pass1@rabbitmq.ncsa.illinois.edu:5672/clowder-dev' -e 'RABBITMQ_EXCHANGE=clowder' -e 'TZ=/usr/share/zoneinfo/US/Central' -e 'REGISTRATION_ENDPOINTS=http://dts-dev.ncsa.illinois.edu:9000/api/extractors?key=key1'  -e 'GEOSERVER_URL=geoserver url' -e 'GEOSERVER_PASSWORD=passwd' -e 'docker exec -it -u bdcli d47316abcb19 bashGEOSERVER_WORKSPACE=testing' -e 'GEOSERVER_USERNAME=username' clowder/extractors-geoshp-preview
 
 ## To run without docker
 
@@ -23,12 +24,12 @@ The other steps are the same.
 
 To install and run the python extractor, do the following:
 
-1. Setup a [virtualenv](https://virtualenv.pypa.io), e.g., named "geoshp":
+1. Setup a [virtualenv](https://virtualenv.pypa.io), e.g., named "geopycsw":
 
-   `virtualenv geoshp`
+   `virtualenv geopycsw`
 2. Activate the virtualenv
 
-   `source geoshp/bin/activate`
+   `source geopycsw/bin/activate`
 3. Install required python packages using *pip*
 
    `pip install -r requirements.txt`
@@ -42,6 +43,6 @@ To install and run the python extractor, do the following:
 5. Modify config.py 
 6. Start extractor
 
-   `./ncsa.geo.shp.py`
+   `./ncsa.geo.pycsw.py`
 
 
