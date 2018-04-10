@@ -65,7 +65,7 @@ class Client:
             self.layer = layers[0]
             return self.layer
 
-    def mintMetadata(self, workspace, storename, extent, has_csw=False):
+    def mintMetadata(self, workspace, storename, extent):
         self.logger.debug("Creating wms metadata ... ") 
         metadata = {}
         layername = None
@@ -92,10 +92,6 @@ class Client:
         metadata['WMS Layer Name'] = wmsLayerName
         metadata['WMS Service URL'] = self.wmsserver
         metadata['WMS Layer URL'] = self.wmsserver+'?request=GetMap&layers='+wmsLayerName+'&bbox='+extent+'&width=640&height=480&srs=EPSG:3857&format=image%2Fpng'
-        if has_csw:
-            metadata['CSW Service URL'] = self.cswserver
-            metadata['CSW Record URL'] = self.cswserver + "?service=CSW&version=2.0.2&request=GetRecordById&elementsetname=summary&id=" + workspace + ":" + layername + "&typeNames=gmd:MD_Metadata&resultType=results&elementSetName=full&outputSchema=http://www.isotc211.org/2005/gmd"
-
         self.logger.debug('[DONE]')
         return metadata
 

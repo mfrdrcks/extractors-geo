@@ -9,6 +9,7 @@ import tempfile
 import urlparse
 
 from pyclowder import extractors
+from osgeo import gdal
 
 from config import *
 import zipshputils as zs
@@ -49,7 +50,6 @@ def process_file(parameters):
         fileid = parameters['fileid']
         inputfile = parameters['inputfile']
         filename = parameters['filename']
-        fileid = '5ac3ac3aada01c6380871249'
         combined_name = filename + "_" + fileid
         fil_baseename, file_extension = os.path.splitext(filename)
         is_shp = False
@@ -97,13 +97,56 @@ def process_file(parameters):
                 # post shapefile layer to pycsw
                 wmsserver = urlparse.urljoin(geoServer, 'wms')
                 layer_name = gs_workspace + ":" + combined_name
-                layer_url = wmsserver + '?request=GetMap&layers=' + layer_name + '&bbox=' + result['Shp Extent'] + '&width=640&height=480&srs=EPSG:3857&format=image%2Fpng'
+                layer_url = wmsserver + '?request=GetMap&layers=' + layer_name + '&bbox=' + result['Shp Extent']\
+                            + '&width=640&height=480&srs=EPSG:3857&format=image%2Fpng'
                 result = post_layer_to_pycsw(layer_name, layer_url, True)
 
                 # upload metadata
                 extractors.upload_file_metadata_jsonld(mdata=metadata, parameters=parameters)
                 logger.debug("upload file metadata")
+        elif is_geotiff:   # geotiff
+            # call actual program
+            result = extractGeotiff(inputfile, fileid, filename)
 
+            # store results as metadata
+            if not result['isGeotiff'] or len(result['errorMsg']) > 0:
+                channel = parameters['channel']
+                header = parameters['header']
+                for i in range(len(result['errorMsg'])):
+                    extractors.status_update(result['errorMsg'][i], fileid, channel, header)
+                    logger.info('[%s] : %s', fileid, result['errorMsg'][i], extra={'fileid': fileid})
+            else:
+                # Context URL
+                context_url = "https://clowder.ncsa.illinois.edu/contexts/metadata.jsonld"
+
+                metadata = {
+                    "@context": [
+                        context_url,
+                        {
+                            'CSW Service URL': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#CSW Service URL',
+                            'CSW Record URL': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#CSW Record URL'
+                        }
+                    ],
+                    'attachedTo': {'resourceType': 'file', 'id': parameters["fileid"]},
+                    'agent': {
+                        '@type': 'cat:extractor',
+                        'extractor_id': 'https://clowder.ncsa.illinois.edu/clowder/api/extractors/' + extractorName},
+                    'content': {
+                        'CSW Service URL': result['CSW Service URL'],
+                        'CSW Record URL': result['CSW Record URL']
+                    }
+                }
+
+                # post shapefile layer to pycsw
+                wmsserver = urlparse.urljoin(geoServer, 'wms')
+                layer_name = gs_workspace + ":" + combined_name
+                layer_url = wmsserver + '?request=GetMap&layers=' + layer_name + '&bbox=' + result['Tiff Extent'] \
+                            + '&width=640&height=480&srs=EPSG:3857&format=image%2Fpng'
+                result = post_layer_to_pycsw(layer_name, layer_url, False)
+
+                # upload metadata
+                extractors.upload_file_metadata_jsonld(mdata=metadata, parameters=parameters)
+                logger.debug("upload file metadata")
     except Exception as ex:
         logger.debug(ex.message)
     finally:
@@ -209,6 +252,46 @@ def extractZipShp(inputfile, fileid, filename):
 
         if error['extent'] == 'UNKNOWN':
             msg['errorMsg'].append("The extent could not be calculated")
+    return msg
+
+def extractGeotiff(inputfile, fileid, filename):
+    global geoServer, gs_username, gs_password, gs_workspace, raster_style, logger
+
+    storeName = fileid
+    msg = {}
+    msg = {}
+    msg['errorMsg'] = []
+    msg['CSW Service URL'] = ''
+    msg['CSW Record URL'] = ''
+    msg['Tiff Extent'] = ''
+    combined_name = filename + "_" + storeName
+
+    uploadfile = inputfile
+
+    geotiffUtil = gu.Utils(uploadfile, raster_style)
+
+    if not geotiffUtil.hasError():
+        msg['isGeotiff'] = True
+        cswserver = urlparse.urljoin(geoServer, 'csw')
+        cswrecord = cswserver + "?service=CSW&version=2.0.2&request=GetRecordById&elementsetname=summary" \
+                                "&id=" + gs_workspace + ":" + combined_name + "&typeNames=gmd:MD_Metadata" \
+                                "&resultType=results&elementSetName=full&outputSchema" \
+                                "=http://www.isotc211.org/2005/gmd"
+        msg['Tiff Extent'] = geotiffUtil.getExtent()
+        msg['CSW Service URL'] = cswserver
+        msg['CSW Record URL'] = cswrecord
+    else:
+        if not geotiffUtil.isGeotiff:
+            msg['isGeotiff'] = False
+            msg['errorMsg'].append("Normal TIFF file")
+            return msg
+
+        if geotiffUtil.getEpsg() == 'UNKNOWN':
+            msg['errorMsg'].append("The projection ccould not be recognized")
+
+        if geotiffUtil.getExtent() == 'UNKNOWN':
+            msg['errorMsg'].append("The extent could not be calculated")
+
     return msg
 
 

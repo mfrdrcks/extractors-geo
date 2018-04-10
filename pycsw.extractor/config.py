@@ -25,7 +25,10 @@ rabbitmqExchange = os.getenv('RABBITMQ_EXCHANGE', "clowder")
 messageType = ["*.file.multi.files-zipped.#",
                "*.file.application.zip",
                "*.file.application.x-zip",
-               "*.file.application.x-7z-compressed"]
+               "*.file.application.x-7z-compressed",
+               "*.file.image.tiff",
+               "*.file.image.tif"
+               ]
 
 # trust certificates, set this to false for self signed certificates
 sslVerify = os.getenv('RABBITMQ_SSLVERIFY', False)
@@ -34,7 +37,8 @@ sslVerify = os.getenv('RABBITMQ_SSLVERIFY', False)
 geoServer = os.getenv('GEOSERVER_URL', '')
 gs_username = os.getenv('GEOSERVER_USERNAME', 'admin')
 gs_password = os.getenv('GEOSERVER_PASSWORD', 'geoserver')
-gs_workspace = os.getenv('GEOSERVER_WORKSPACE', 'clowder')
+gs_workspace = os.getenv('GEOSERVER_WORKSPACE', '')
+raster_style = "rasterTemplate.xml"
 
 # PyCSW setting
 pycsw_server = os.getenv('PYCSW_URL', '')

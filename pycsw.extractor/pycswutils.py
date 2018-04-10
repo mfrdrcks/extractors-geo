@@ -65,7 +65,7 @@ def parse_bbox_from_url(url):
             for bbox in elements[1].split(','):
                 bbox_list.append(bbox)
 
-    bbox_list = pu.convert_bounding_box_3857_4326(bbox_list)
+    bbox_list = convert_bounding_box_3857_4326(bbox_list)
 
     # x and y should be switched in the xml to insert it to pycsw
     b1 = bbox_list[0]
