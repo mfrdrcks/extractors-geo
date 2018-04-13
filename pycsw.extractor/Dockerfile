@@ -11,7 +11,9 @@ RUN apt-get update && apt-get install -y \
        gdal-bin \
        python-gdal \
        p7zip-full \
-    && pip install --upgrade  -r /home/clowder/requirements.txt \
+       python-pyproj \
+    && pip install --upgrade pip \ 
+    && pip install -r /home/clowder/requirements.txt \
     && rm -rf /var/lib/apt/lists/*
 
 # Switch to clowder, copy files and be ready to run
@@ -37,4 +39,4 @@ ENV RABBITMQ_URI="" \
     PYCSW_URL=""
 
 # copy rest of the files needed
-COPY entrypoint.sh *.py extractor_info.json rasterTemplate.xml /home/clowder/
+COPY entrypoint.sh *.py extractor_info.json /home/clowder/
