@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
        python-gdal \
        p7zip-full \
        python-pyproj \
-    && pip install --upgrade pip \
+    && pip install --upgrade pip==9.0.3 \
     && pip install -r /home/clowder/requirements.txt \
     && rm -rf /var/lib/apt/lists/*
 
