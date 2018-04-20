@@ -1,5 +1,5 @@
 FROM clowder/pyclowder:1
-MAINTAINER Rob Kooper <kooper@illinois.edu>
+MAINTAINER Yong Wook Kim <ywkim@illinois.edu>
 
 # copy requirements file
 COPY requirements.txt /home/clowder/

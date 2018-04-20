@@ -2,7 +2,7 @@
 # this will create the xml string of the dataset for inserting it into pycsw
 # the parameters are defined in pycsw_insert_template.xml file
 # if you change the names of these parameters to replaced,
-# the smae parameters in pycsw_insert_template.xml should be changed
+# the same parameters in pycsw_insert_template.xml should be changed
 # create by ywkim at Mar 14, 2018
 # =============================================================================
 #!/usr/bin/env python
