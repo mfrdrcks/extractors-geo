@@ -200,7 +200,7 @@ def extractZipShp(inputfile, fileid, filename):
     zipshp = zs.Utils(inputfile)
     if not zipshp.hasError():
         msg['isZipShp'] = True
-        cswserver = urlparse.urljoin(geoServer, 'geoserver/csw')
+        cswserver = urlparse.urljoin(geoServer, 'csw')
         cswrecord = cswserver + "?service=CSW&version=2.0.2&request=GetRecordById&elementsetname=summary" \
                                 "&id=" + gs_workspace + ":" + combined_name + "&typeNames=gmd:MD_Metadata" \
                                 "&resultType=results&elementSetName=full&outputSchema" \
@@ -272,7 +272,7 @@ def extractGeotiff(inputfile, fileid, filename):
 
     if not geotiffUtil.hasError():
         msg['isGeotiff'] = True
-        cswserver = urlparse.urljoin(geoServer, 'geoserver/csw')
+        cswserver = urlparse.urljoin(geoServer, 'csw')
         cswrecord = cswserver + "?service=CSW&version=2.0.2&request=GetRecordById&elementsetname=summary" \
                                 "&id=" + gs_workspace + ":" + combined_name + "&typeNames=gmd:MD_Metadata" \
                                 "&resultType=results&elementSetName=full&outputSchema" \
