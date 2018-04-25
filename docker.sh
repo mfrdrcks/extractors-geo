@@ -91,9 +91,9 @@ create() {
 }
 
 # Create the docker containers
-#create "./metadata.geotiff"   "extractors-geotiff-metadata" "Dockerfile"
-#create "./preview.geotiff"     "extractors-geotiff-preview"  "Dockerfile"
-#create "./preview.geoshp"     "extractors-geoshp-preview"   "Dockerfile"
+create "./metadata.geotiff"   "extractors-geotiff-metadata" "Dockerfile"
+create "./preview.geotiff"     "extractors-geotiff-preview"  "Dockerfile"
+create "./preview.geoshp"     "extractors-geoshp-preview"   "Dockerfile"
 create "./pycsw.extractor"    "extractors-pycsw" "Dockerfile"
 # remove latest tags
 for r in $LATEST; do
