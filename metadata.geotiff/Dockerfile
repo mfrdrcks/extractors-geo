@@ -1,20 +1,28 @@
-FROM clowder/pyclowder:1
-MAINTAINER Rui Liu <ruiliu@illinois.edu>
+FROM clowder/pyclowder:2
+MAINTAINER Yong Wook Kim <ywkim@illinois.edu>
 
 # copy requirements file
 COPY requirements.txt /home/clowder/
 
 # Install any programs needed
-USER root
+#USER root
 
-RUN apt-get update && apt-get -y install python-dev python-pip python-dev build-essential python-numpy software-properties-common && apt-add-repository ppa:ubuntugis/ppa && \
-    apt-get -y install gdal-bin python-gdal python-scipy && \
-    pip install --upgrade pip && \
+RUN apt-get update && apt-get -y install python-dev \
+    python-pip \
+    python-dev \
+    build-essential \
+    python-numpy \
+    gdal-bin \
+    python-gdal \
+    python-scipy \
+    software-properties-common && \
+    apt-add-repository ppa:ubuntugis/ppa && \
+    pip install --upgrade pip==9.0.3 && \
     pip install -r /home/clowder/requirements.txt && \
     rm -rf /var/lib/apt/lists/*
 
 # Switch to clowder, copy files and be ready to run
-USER clowder
+#USER clowder
 
 # command to run when starting docker
 ENTRYPOINT ["/home/clowder/entrypoint.sh"]

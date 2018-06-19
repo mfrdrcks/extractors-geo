@@ -1,7 +1,7 @@
 {
     "@context": "http://clowder.ncsa.illinois.edu/contexts/extractors.jsonld",
     "name": "ncsa.pycsw.extractor",
-    "version": "1.0",
+    "version": "2.0",
     "description": "gepshp extractor takes .zip or tiff input file to communicate with pycsw server to retrieve csw metadata",
     "author": "Yong Wook Kim <ywkim@illinois.edu>",
     "contributors": [
@@ -16,6 +16,16 @@
             "CSW Record URL": "http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#CSW Record URL"
         }
     ],
+    "process": {
+        "file": [
+            "multi.files-zipped.#",
+            "application/zip",
+            "application/x-zip",
+            "application/x-7z-compressed",
+            "image/tiff",
+            "image/tif"
+        ]
+    },
     "repository": [
         {
             "repType": "git",
@@ -23,7 +33,7 @@
         },
         {
             "repType": "docker",
-            "repUrl": "clowder/extractors-pycsw-extractor"
+            "repUrl": "clowder/extractors-pycsw"
         }
     ],
     "external_services": [

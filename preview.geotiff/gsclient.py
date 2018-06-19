@@ -95,12 +95,15 @@ class Client:
         self.logger.debug('[DONE]')
         return metadata
 
-    def uploadShapefile(self, workspace, storename, filename, projection):
+    def uploadShapefile(self, workspace, storename, filename, projection, secret_key, proxy_on):
         self.logger.debug("Uploading shapefile" + filename +"...")
         url = self.restserver+"/workspaces/"+workspace+"/datastores/" + storename + "/file.shp"
         response = None
         with open(filename, 'rb') as f:
-            response = requests.put(url, headers={'content-type':'application/zip'}, auth=(self.username, self.password),data=f)
+            if (proxy_on.lower() == 'true'):
+                response = requests.put(url  + '?key=' + secret_key, headers={'content-type': 'application/zip'}, auth=(self.username, self.password), data=f)
+            else:
+                response = requests.put(url, headers={'content-type':'application/zip'}, auth=(self.username, self.password),data=f)
         self.logger.debug(str(response.status_code) + " " + response.text)
 
         if response.status_code != 201:
@@ -120,7 +123,7 @@ class Client:
         self.layerName = storename
         return True
 
-    def uploadGeotiff(self, workspace, storename, filename, title, styleStr, projection):
+    def uploadGeotiff(self, workspace, storename, filename, title, styleStr, projection, secret_key, proxy_on):
         self.logger.debug("Uploading geotiff" + filename + "...")
         name, ext = os.path.splitext(os.path.basename(filename))
         # TODO need to check the coverage name to avoid duplication
@@ -128,7 +131,10 @@ class Client:
         response = None
         self.logger.debug(url)
         with open(filename, 'rb') as f:
-            response = requests.put(url, headers={'content-type':'image/tiff'}, auth=(self.username, self.password),data=f)
+            if (proxy_on.lower() == 'true'):
+                response = requests.put(url + '?key=' + secret_key, headers={'content-type': 'image/tiff'}, auth=(self.username, self.password), data=f)
+            else:
+                response = requests.put(url, headers={'content-type':'image/tiff'}, auth=(self.username, self.password),data=f)
         self.logger.debug(str(response.status_code) + " " + response.text)
 
         if response.status_code != 201:

@@ -1,7 +1,7 @@
 {
     "@context": "http://clowder.ncsa.illinois.edu/contexts/extractors.jsonld",
     "name": "ncsa.geotiff.preview",
-    "version": "1.0",
+    "version": "2.0",
     "description": "geotiff preview extractor takes .tif input file to communicate with GeoServer to retrieve WMS metadata",
     "author": "Jong Lee <jonglee1@illinois.edu>",
     "contributors": [
@@ -25,6 +25,12 @@
             "repUrl": "clowder/extractors-geotiff-preview"
         }
     ],
+    "process": {
+        "file": [
+          "image/tiff",
+          "image/tif"
+        ]
+    },
     "external_services": [
         "geoserver"
     ],
