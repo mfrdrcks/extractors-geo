@@ -45,4 +45,32 @@ To install and run the python extractor, do the following:
 
    `./ncsa.geo.pycsw.py`
 
+# Setting up pycsw server as a docker service
+1. Download pycsw.cfg locally: https://github.com/geopython/pycsw/blob/master/docker/pycsw.cfg
 
+2. Modify following section:
+```
+    [manager]
+    transactions=true
+    allowed_ips=127.0.0.1,0.0.0.0/0
+```
+
+3. Create a docker secret with the pycsw config file
+    `docker secret create pycsw-config <path-to-local-pycsw.cfg>`
+    
+    
+4. Create a docker volume for persisting the database
+    `docker volume create pycsw-db-data`
+
+5. Run the docker service and persist the sqlite database
+```
+docker service create \
+    --name ncsa_pycsw_server \
+    --mount type=volume,source=db-data,destination=/var/lib/pycsw,volume-label="pycsw-db-data" \
+    --mode replicated \
+    --replicas 1 \
+    --secret source=pycsw-config,target=/etc/pycsw/pycsw.cfg \
+    --publish 8000:8000 \
+    --constraint 'node.role == worker' \
+    geopython/pycsw
+ ```
