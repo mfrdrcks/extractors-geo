@@ -2,6 +2,7 @@
 
 import logging
 import os
+import copy
 import tempfile
 
 from urlparse import urlparse
@@ -48,6 +49,10 @@ class ExtractorsGeotiffPreview(Extractor):
         filename = resource['name']
         inputfile = resource["local_paths"][0]
         fileid = resource['id']
+
+        # get variable for geoserver workspace. This is a dataset's parent id
+        parentid = resource['parent']['id']
+        self.gs_workspace = parentid
 
         tmpfile = None
 
@@ -137,6 +142,7 @@ class ExtractorsGeotiffPreview(Extractor):
                 geoserver_url = self.geoServer
                 parsed_uri = urlparse(geoserver_url)
                 gs_domain = u'{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+                self.geoserver_old = copy.copy(self.geoServer)
                 self.geoServer = geoserver_url.replace(gs_domain, self.proxy_url)
 
             gsclient = gs.Client(self.geoServer, self.gs_username, self.gs_password)
@@ -158,7 +164,7 @@ class ExtractorsGeotiffPreview(Extractor):
             # merge file name and id and make a new store name
             combined_name = filename + "_" + storeName
 
-            success = gsclient.uploadGeotiff(self.gs_workspace, combined_name, uploadfile, filename, style, epsg, self.secret_key, self.proxy_on)
+            success = gsclient.uploadGeotiff(self.geoserver_old, self.gs_workspace, combined_name, uploadfile, filename, style, epsg, self.secret_key, self.proxy_on)
             if success:
                 self.logger.debug("upload geotiff successfully")
                 metadata = gsclient.mintMetadata(self.gs_workspace, combined_name, geotiffUtil.getExtent())

@@ -95,46 +95,94 @@ class Client:
         self.logger.debug('[DONE]')
         return metadata
 
-    def uploadShapefile(self, workspace, storename, filename, projection, secret_key, proxy_on):
-        self.logger.debug("Uploading shapefile" + filename +"...")
-        url = self.restserver+"/workspaces/"+workspace+"/datastores/" + storename + "/file.shp"
-        response = None
-        with open(filename, 'rb') as f:
-            if (proxy_on.lower() == 'true'):
-                response = requests.put(url  + '?key=' + secret_key, headers={'content-type': 'application/zip'}, auth=(self.username, self.password), data=f)
-            else:
-                response = requests.put(url, headers={'content-type':'application/zip'}, auth=(self.username, self.password),data=f)
-        self.logger.debug(str(response.status_code) + " " + response.text)
-
-        if response.status_code != 201:
-            self.logger.debug("[DONE]")
-            return False
-
-        # setup projection
-        
-        resource = self.getResourceByStoreName(storename, workspace)
-
-        if resource.projection == None:
-            self.logger.debug('Setting projection' + projection)
-            resource.projection = projection
-            self.catalog.save(resource)
-        self.logger.debug("[DONE]")
-        name, ext = os.path.splitext(os.path.basename(filename))
-        self.layerName = storename
-        return True
-
-    def uploadGeotiff(self, workspace, storename, filename, title, styleStr, projection, secret_key, proxy_on):
+    def uploadGeotiff(self, geoserver_url, workspace, storename, filename, title, styleStr, projection, secret_key, proxy_on):
         self.logger.debug("Uploading geotiff" + filename + "...")
-        name, ext = os.path.splitext(os.path.basename(filename))
         # TODO need to check the coverage name to avoid duplication
-        url = self.restserver+"/workspaces/"+workspace+"/coveragestores/" + storename + "/file.geotiff" + "?coverageName=" + storename
-        response = None
-        self.logger.debug(url)
-        with open(filename, 'rb') as f:
-            if (proxy_on.lower() == 'true'):
-                response = requests.put(url + '?key=' + secret_key, headers={'content-type': 'image/tiff'}, auth=(self.username, self.password), data=f)
-            else:
-                response = requests.put(url, headers={'content-type':'image/tiff'}, auth=(self.username, self.password),data=f)
+
+        if (proxy_on.lower() == 'true'):
+            # TODO activate proxy_on method if the proxy in clowder works
+            return self.geoserver_manipulation_proxy_off(geoserver_url, workspace, storename, filename, title, styleStr,
+                                                         projection, secret_key)
+            # return self.geoserver_manipulation_proxy_on(geoserver_url, workspace, storename, filename, title, styleStr, projection, secret_key)
+        else:
+            return self.geoserver_manipulation_proxy_off(geoserver_url, workspace, storename, filename, title, styleStr, projection, secret_key)
+
+    def geoserver_manipulation_proxy_on(self, geoserver_url, workspace, storename, filename, title, styleStr,
+                                         projection, secret_key):
+        # create workspace if not present
+        is_workspace = False
+
+        # this is a direct method, if the proxy works, this should go through proxy
+        last_charactor = geoserver_url[-1]
+        if last_charactor == '/':
+            geoserver_rest = geoserver_url + 'rest'
+        else:
+            geoserver_rest = geoserver_url + '/rest'
+
+        response_worksp = requests.get(geoserver_rest + '/workspaces/' + workspace, auth=(self.username, self.password))
+        if response_worksp.status_code != 200:
+            new_worksp = "<workspace><name>" + workspace + "</name></workspace>"
+            response_worksp = requests.post(geoserver_rest + '/workspaces', headers={"Content-type": "text/xml"},
+                                            auth=(self.username, self.password), data=new_worksp)
+            if response_worksp.status_code == 200:
+                is_workspace = True
+        else:
+            is_workspace = True
+
+        # upload geotiff
+        if is_workspace:
+            name, ext = os.path.splitext(os.path.basename(filename))
+            url = self.restserver + "/workspaces/" + workspace + "/coveragestores/" + storename + "/file.geotiff" + "?coverageName=" + storename
+
+            # proxy method
+            worksp_url = self.restserver + '?key=' + secret_key,
+            # response = requests.get(worksp_url, auth=(self.username, self.password))
+
+            response = None
+            self.logger.debug(url)
+            with open(filename, 'rb') as f:
+                response = requests.put(url + '?key=' + secret_key, headers={'content-type': 'image/tiff'},
+                                            auth=(self.username, self.password), data=f)
+
+            return self.set_resources(response, storename, workspace, projection, styleStr)
+
+
+    def geoserver_manipulation_proxy_off(self, geoserver_url, workspace, storename, filename, title, styleStr, projection, secret_key):
+        # create workspace if not present
+        is_workspace = False
+
+        # this is a direct method, if the proxy works, this should go through proxy
+        last_charactor = geoserver_url[-1]
+        if last_charactor == '/':
+            geoserver_rest = geoserver_url + 'rest'
+        else:
+            geoserver_rest = geoserver_url + '/rest'
+
+        response_worksp = requests.get(geoserver_rest + '/workspaces/' + workspace, auth=(self.username, self.password))
+        if response_worksp.status_code != 200:
+            new_worksp = "<workspace><name>" + workspace + "</name></workspace>"
+            response_worksp = requests.post(geoserver_rest + '/workspaces', headers={"Content-type": "text/xml"},
+                                            auth=(self.username, self.password), data=new_worksp)
+            if response_worksp.status_code == 200:
+                is_workspace = True
+        else:
+            is_workspace = True
+
+        # upload geotiff
+        if is_workspace:
+            name, ext = os.path.splitext(os.path.basename(filename))
+            url = geoserver_rest + "/workspaces/" + workspace + "/coveragestores/" + storename + "/file.geotiff" + "?coverageName=" + storename
+
+            response = None
+            self.logger.debug(url)
+            with open(filename, 'rb') as f:
+                response = requests.put(url, headers={'content-type': 'image/tiff'},
+                                            auth=(self.username, self.password), data=f)
+            return self.set_resources(response, storename, workspace, projection, styleStr)
+
+
+    def set_resources(self, response, storename, workspace, projection, styleStr):
+
         self.logger.debug(str(response.status_code) + " " + response.text)
 
         if response.status_code != 201:
@@ -155,8 +203,9 @@ class Client:
             if self.uploadRasterStyle(storename, styleStr):
                 self.logger.debug('Setting style')
                 self.setStyle(self.layerName, storename)
-        
+
             self.logger.debug("style set: [DONE]")
+
         return True
 
     def uploadRasterStyle(self, storename, styleStr):
