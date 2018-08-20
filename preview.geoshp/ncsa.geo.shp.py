@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import copy
 import requests
 import logging
 import os
@@ -39,7 +39,6 @@ class ExtractorsGeoshpPreview(Extractor):
         self.geoServer = os.getenv('GEOSERVER_URL')
         self.gs_username = os.getenv('GEOSERVER_USERNAME', 'admin')
         self.gs_password = os.getenv('GEOSERVER_PASSWORD', 'geosever')
-        self.gs_workspace = os.getenv('GEOSERVER_WORKSPACE', 'clowder')
         self.proxy_url = os.getenv('PROXY_URL', 'http://localhost:9000/api/proxy/')
         self.proxy_on = os.getenv('PROXY_ON', 'false')
 
@@ -52,6 +51,10 @@ class ExtractorsGeoshpPreview(Extractor):
             filename = resource['name']
             inputfile = resource["local_paths"][0]
             fileid = resource['id']
+
+            # get variable for geoserver workspace. This is a dataset's parent id
+            parentid = resource['parent']['id']
+            self.gs_workspace = parentid
 
             # call actual program
             result = self.extractZipShp(inputfile, fileid, filename)
@@ -138,20 +141,22 @@ class ExtractorsGeoshpPreview(Extractor):
 
             uploadfile = zipshp.createZip(zipshp.tempDir, combined_name)
 
+            # TODO if the proxy is working, gsclient host should be changed to proxy server
+            gsclient = gs.Client(self.geoServer, self.gs_username, self.gs_password)
+
             if self.proxy_on.lower() == 'true':
                 geoserver_url = self.geoServer
                 parsed_uri = urlparse(geoserver_url)
                 gs_domain = u'{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+                self.geoserver_old = copy.copy(self.geoServer)
                 self.geoServer = geoserver_url.replace(gs_domain, self.proxy_url)
-
-            gsclient = gs.Client(self.geoServer, self.gs_username, self.gs_password)
 
             if zipshp.getEpsg() == 'UNKNOWN' or zipshp.getEpsg() == None:
                 epsg = "EPSG:4326"
             else:
                 epsg = "EPSG:" + zipshp.getEpsg()
 
-            success = gsclient.uploadShapefile(self.gs_workspace, combined_name, uploadfile, epsg, self.secret_key, self.proxy_on)
+            success = gsclient.uploadShapefile(self.geoserver_old, self.gs_workspace, combined_name, uploadfile, epsg, self.secret_key, self.proxy_on)
 
             if success:
                 self.logger.debug("---->success")

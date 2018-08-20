@@ -34,7 +34,6 @@ ENV RABBITMQ_URI="" \
     GEOSERVER_URL="" \
     GEOSERVER_USERNAME="admin" \
     GEOSERVER_PASSWORD="geoserver" \
-    GEOSERVER_WORKSPACE="clowder" \
     PROXY_URL='http://localhost:9000/api/proxy/' \
     PROXY_ON='false'
 

@@ -37,7 +37,6 @@ class ExtractorsGeotiffPreview(Extractor):
         self.geoServer = os.getenv('GEOSERVER_URL')
         self.gs_username = os.getenv('GEOSERVER_USERNAME', 'admin')
         self.gs_password = os.getenv('GEOSERVER_PASSWORD', 'geoserver')
-        self.gs_workspace = os.getenv('GEOSERVER_WORKSPACE', 'clowder')
         self.proxy_url = os.getenv('PROXY_URL', 'http://localhost:9000/api/proxy/')
         self.proxy_on = os.getenv('PROXY_ON', 'false')
         self.raster_style = "rasterTemplate.xml"
