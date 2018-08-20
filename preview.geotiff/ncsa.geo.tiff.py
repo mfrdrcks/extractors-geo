@@ -138,14 +138,15 @@ class ExtractorsGeotiffPreview(Extractor):
 
         if not geotiffUtil.hasError():
             msg['isGeotiff'] = True
+            # TODO if the proxy is working, gsclient host should be changed to proxy server
+            gsclient = gs.Client(self.geoServer, self.gs_username, self.gs_password)
+
             if self.proxy_on.lower() == 'true':
                 geoserver_url = self.geoServer
                 parsed_uri = urlparse(geoserver_url)
                 gs_domain = u'{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
                 self.geoserver_old = copy.copy(self.geoServer)
                 self.geoServer = geoserver_url.replace(gs_domain, self.proxy_url)
-
-            gsclient = gs.Client(self.geoServer, self.gs_username, self.gs_password)
 
             epsg = "EPSG:" + str(geotiffUtil.getEpsg())
             style = None
