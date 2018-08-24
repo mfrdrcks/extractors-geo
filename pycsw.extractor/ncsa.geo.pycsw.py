@@ -49,7 +49,6 @@ class PycswExtractor(Extractor):
                        "*.file.image.tif"
                        ]
         self.geoServer = os.getenv('GEOSERVER_URL')
-        self.gs_workspace = os.getenv('GEOSERVER_WORKSPACE', 'clowder')
         self.proxy_url = os.getenv('PROXY_URL')
         self.proxy_on = os.getenv('PROXY_ON', 'false')
         self.raster_style = "rasterTemplate.xml"
@@ -58,6 +57,10 @@ class PycswExtractor(Extractor):
 
         self.secret_key = secret_key
         self.logger = logging.getLogger(__name__)
+
+        # get variable for geoserver workspace. This is a dataset's parent id
+        parentid = resource['parent']['id']
+        self.gs_workspace = parentid
 
         """Process the compressed shapefile and create geoserver layer"""
         tmpfile = None
@@ -69,101 +72,111 @@ class PycswExtractor(Extractor):
             fil_baseename, file_extension = os.path.splitext(filename)
             is_shp = False
             is_geotiff = False
+            is_insert = False    # if is_insert is False, that means the deletion of the pycsw dataset
 
-            # check file extension if it is zip or tiff
-            if file_extension.lower() == '.zip':
-                is_shp = True
-            if file_extension.lower() == '.tiff' or file_extension.lower() == '.tif':
-                is_geotiff = True
+            if is_insert:
+                # check file extension if it is zip or tiff
+                if file_extension.lower() == '.zip':
+                    is_shp = True
+                if file_extension.lower() == '.tiff' or file_extension.lower() == '.tif':
+                    is_geotiff = True
 
-            if is_shp:
-                # call actual program
-                result = self.extractZipShp(inputfile, fileid, filename)
+                if is_shp:
+                    # call actual program
+                    result = self.extractZipShp(inputfile, fileid, filename)
 
-                # store results as metadata
-                if not result['isZipShp'] or len(result['errorMsg']) > 0:
-                    channel = parameters['channel']
-                    header = parameters['header']
-                    for i in range(len(result['errorMsg'])):
-                        connector.status_update(StatusMessage.error, {"type": "file", "id": fileid},
-                                                result['errorMsg'][i])
-                        self.logger.info('[%s] : %s', fileid, result['errorMsg'][i], extra={'fileid', fileid})
-                else:
-                    # Context URL
-                    context_url = "https://clowder.ncsa.illinois.edu/contexts/metadata.jsonld"
+                    # store results as metadata
+                    if not result['isZipShp'] or len(result['errorMsg']) > 0:
+                        channel = parameters['channel']
+                        header = parameters['header']
+                        for i in range(len(result['errorMsg'])):
+                            connector.status_update(StatusMessage.error, {"type": "file", "id": fileid},
+                                                    result['errorMsg'][i])
+                            self.logger.info('[%s] : %s', fileid, result['errorMsg'][i], extra={'fileid', fileid})
+                    else:
+                        # Context URL
+                        context_url = "https://clowder.ncsa.illinois.edu/contexts/metadata.jsonld"
 
-                    metadata = {
-                        "@context": [
-                            context_url,
-                            {
-                                'CSW Service URL': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#CSW Service URL',
-                                'CSW Record URL': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#CSW Record URL'
+                        metadata = {
+                            "@context": [
+                                context_url,
+                                {
+                                    'CSW Service URL': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#CSW Service URL',
+                                    'CSW Record URL': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#CSW Record URL'
+                                }
+                            ],
+                            'attachedTo': {'resourceType': 'file', 'id': parameters["id"]},
+                            'agent': {
+                                '@type': 'cat:extractor',
+                                'extractor_id': 'https://clowder.ncsa.illinois.edu/clowder/api/extractors/' + self.extractorName},
+                            'content': {
+                                'CSW Service URL': result['CSW Service URL'],
+                                'CSW Record URL': result['CSW Record URL']
                             }
-                        ],
-                        'attachedTo': {'resourceType': 'file', 'id': parameters["id"]},
-                        'agent': {
-                            '@type': 'cat:extractor',
-                            'extractor_id': 'https://clowder.ncsa.illinois.edu/clowder/api/extractors/' + self.extractorName},
-                        'content': {
-                            'CSW Service URL': result['CSW Service URL'],
-                            'CSW Record URL': result['CSW Record URL']
                         }
-                    }
 
-                    # post shapefile layer to pycsw
-                    wmsserver = urlparse.urljoin(self.geoServer, 'wms')
-                    layer_name = self.gs_workspace + ":" + combined_name
-                    layer_url = wmsserver + '?request=GetMap&layers=' + layer_name + '&bbox=' + result['Shp Extent']\
-                                + '&width=640&height=480&srs=EPSG:3857&format=image%2Fpng'
-                    result = self.post_layer_to_pycsw(layer_name, layer_url, True)
+                        # post shapefile layer to pycsw
+                        wmsserver = urlparse.urljoin(self.geoServer, 'wms')
+                        layer_name = self.gs_workspace + ":" + combined_name
+                        layer_url = wmsserver + '?request=GetMap&layers=' + layer_name + '&bbox=' + result['Shp Extent']\
+                                    + '&width=640&height=480&srs=EPSG:3857&format=image%2Fpng'
+                        result = self.post_layer_to_pycsw(layer_name, layer_url, True)
 
-                    # upload metadata
-                    # self.extractor.upload_file_metadata_jsonld(mdata=metadata, parameters=parameters)
-                    pyclowder.files.upload_metadata(connector, host, secret_key, fileid, metadata)
-                    self.logger.debug("upload file metadata")
-            elif is_geotiff:   # geotiff
-                # call actual program
-                result = self.extractGeotiff(inputfile, fileid, filename)
+                        # upload metadata
+                        # self.extractor.upload_file_metadata_jsonld(mdata=metadata, parameters=parameters)
+                        pyclowder.files.upload_metadata(connector, host, secret_key, fileid, metadata)
+                        self.logger.debug("upload file metadata")
+                elif is_geotiff:   # geotiff
+                    # call actual program
+                    result = self.extractGeotiff(inputfile, fileid, filename)
 
-                # store results as metadata
-                if not result['isGeotiff'] or len(result['errorMsg']) > 0:
-                    channel = parameters['channel']
-                    header = parameters['header']
-                    for i in range(len(result['errorMsg'])):
-                        connector.status_update(StatusMessage.error, {"type": "file", "id": fileid},
-                                                result['errorMsg'][i])
-                        self.logger.info('[%s] : %s', fileid, result['errorMsg'][i], extra={'fileid': fileid})
-                else:
-                    # Context URL
-                    context_url = "https://clowder.ncsa.illinois.edu/contexts/metadata.jsonld"
+                    # store results as metadata
+                    if not result['isGeotiff'] or len(result['errorMsg']) > 0:
+                        channel = parameters['channel']
+                        header = parameters['header']
+                        for i in range(len(result['errorMsg'])):
+                            connector.status_update(StatusMessage.error, {"type": "file", "id": fileid},
+                                                    result['errorMsg'][i])
+                            self.logger.info('[%s] : %s', fileid, result['errorMsg'][i], extra={'fileid': fileid})
+                    else:
+                        # Context URL
+                        context_url = "https://clowder.ncsa.illinois.edu/contexts/metadata.jsonld"
 
-                    metadata = {
-                        "@context": [
-                            context_url,
-                            {
-                                'CSW Service URL': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#CSW Service URL',
-                                'CSW Record URL': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#CSW Record URL'
+                        metadata = {
+                            "@context": [
+                                context_url,
+                                {
+                                    'CSW Service URL': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#CSW Service URL',
+                                    'CSW Record URL': 'http://clowder.ncsa.illinois.edu/metadata/ncsa.geotiff.preview#CSW Record URL'
+                                }
+                            ],
+                            'attachedTo': {'resourceType': 'file', 'id': parameters["id"]},
+                            'agent': {
+                                '@type': 'cat:extractor',
+                                'extractor_id': 'https://clowder.ncsa.illinois.edu/clowder/api/extractors/' + self.extractorName},
+                            'content': {
+                                'CSW Service URL': result['CSW Service URL'],
+                                'CSW Record URL': result['CSW Record URL']
                             }
-                        ],
-                        'attachedTo': {'resourceType': 'file', 'id': parameters["id"]},
-                        'agent': {
-                            '@type': 'cat:extractor',
-                            'extractor_id': 'https://clowder.ncsa.illinois.edu/clowder/api/extractors/' + self.extractorName},
-                        'content': {
-                            'CSW Service URL': result['CSW Service URL'],
-                            'CSW Record URL': result['CSW Record URL']
                         }
-                    }
 
-                    # post shapefile layer to pycsw
-                    wmsserver = urlparse.urljoin(self.geoServer, 'wms')
-                    layer_name = self.gs_workspace + ":" + combined_name
-                    layer_url = wmsserver + '?request=GetMap&layers=' + layer_name + '&bbox=' + result['Tiff Extent'] \
-                                + '&width=640&height=480&srs=EPSG:3857&format=image%2Fpng'
-                    result = self.post_layer_to_pycsw(layer_name, layer_url, False)
+                        # post geotiff layer to pycsw
+                        wmsserver = urlparse.urljoin(self.geoServer, 'wms')
+                        layer_name = self.gs_workspace + ":" + combined_name
+                        layer_url = wmsserver + '?request=GetMap&layers=' + layer_name + '&bbox=' + result['Tiff Extent'] \
+                                    + '&width=640&height=480&srs=EPSG:3857&format=image%2Fpng'
+                        result = self.post_layer_to_pycsw(layer_name, layer_url, False)
 
-                    pyclowder.files.upload_metadata(connector, host, secret_key, fileid, metadata)
-                    self.logger.debug("upload file metadata")
+                        pyclowder.files.upload_metadata(connector, host, secret_key, fileid, metadata)
+                        self.logger.debug("upload file metadata")
+            else:
+                # deleteion of the record
+                layer_name = self.gs_workspace + ":" + combined_name
+                pycswutil = pu.Utils()
+                xml_str = pycswutil.construct_delete_xml(layer_name)
+                result = pycswutil.post_pycsw_xml(self.pycsw_server, xml_str, self.secret_key, self.proxy_on,
+                                                  self.proxy_url)
+
         except Exception as ex:
             self.logger.debug(ex.message)
         finally:
@@ -198,7 +211,7 @@ class PycswExtractor(Extractor):
                                           xml_keyword,
                                           xml_title,
                                           xml_lower_corner, xml_upper_corner)
-        result = pycswutil.post_insert_xml(self.pycsw_server, xml_str, self.secret_key, self.proxy_on, self.proxy_url)
+        result = pycswutil.post_pycsw_xml(self.pycsw_server, xml_str, self.secret_key, self.proxy_on, self.proxy_url)
 
         return result
 

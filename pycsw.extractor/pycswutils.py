@@ -17,6 +17,8 @@ class Utils:
 
     def __init__(self):
         self.logger = logging.getLogger("pycswutils")
+        self.insert_xml = "pycsw_remove_template.xml"
+        self.delete_xml = "pycsw_insert_template.xml"
 
     """
     construnct xml for dataset insert to pycsw
@@ -25,7 +27,7 @@ class Utils:
                              xml_lower_corner, xml_upper_corner):
         # read xml template
         currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-        xml_tempfile = os.path.join(currentdir, "pycsw_insert_template.xml")
+        xml_tempfile = os.path.join(currentdir, self.insert_xml)
         xml_read = open(xml_tempfile, 'r')
         xml_temp_str = xml_read.read()
         xml_read.close()
@@ -58,6 +60,24 @@ class Utils:
 
         return xml_temp_str
 
+    """
+    construct delete xml
+    """
+    def construct_delete_xml(self, xml_title):
+        # read xml template
+        currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+        xml_tempfile = os.path.join(currentdir, self.delete_xml)
+        xml_read = open(xml_tempfile, 'r')
+        xml_temp_str = xml_read.read()
+        xml_read.close()
+
+        # replace parameters
+        # the string are located in pycsw_insert_template.xml
+        # if you change the string values, the strings in xml file should also be changed.
+        rep_title = '%=title=%'
+        xml_temp_str = xml_temp_str.replace(rep_title, xml_title)
+
+        return xml_temp_str
 
     """
     parse bounding box information from layer url
@@ -84,12 +104,11 @@ class Utils:
 
         return bbox_list
 
-
     """
     post xml to pycsw
     """
-    def post_insert_xml(self, pycsw_server, xml_str, secret_key, proxy_on, proxy_url):
-        # uncomment this when clowder proxy auth setting is okay
+    def post_pycsw_xml(self, pycsw_server, xml_str, secret_key, proxy_on, proxy_url):
+
         if proxy_on.lower() == 'true':
             pycsw_url = pycsw_server
             parsed_uri = urlparse(pycsw_url)
