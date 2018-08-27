@@ -17,8 +17,8 @@ class Utils:
 
     def __init__(self):
         self.logger = logging.getLogger("pycswutils")
-        self.insert_xml = "pycsw_remove_template.xml"
-        self.delete_xml = "pycsw_insert_template.xml"
+        self.insert_xml = "pycsw_insert_template.xml"
+        self.delete_xml = "pycsw_remove_template.xml"
 
     """
     construnct xml for dataset insert to pycsw

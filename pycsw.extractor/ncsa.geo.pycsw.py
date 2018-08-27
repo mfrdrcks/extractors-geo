@@ -72,7 +72,7 @@ class PycswExtractor(Extractor):
             fil_baseename, file_extension = os.path.splitext(filename)
             is_shp = False
             is_geotiff = False
-            is_insert = False    # if is_insert is False, that means the deletion of the pycsw dataset
+            is_insert = True    # if is_insert is False, that means the deletion of the pycsw dataset
 
             if is_insert:
                 # check file extension if it is zip or tiff
