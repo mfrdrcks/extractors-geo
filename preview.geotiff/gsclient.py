@@ -124,7 +124,7 @@ class Client:
             new_worksp = "<workspace><name>" + workspace + "</name></workspace>"
             response_worksp = requests.post(geoserver_rest + '/workspaces' + '?key=' + secret_key, headers={"Content-type": "text/xml"},
                                             auth=(self.username, self.password), data=new_worksp)
-            if response_worksp.status_code == 200:
+            if response_worksp.status_code == 201:
                 is_workspace = True
         else:
             is_workspace = True
@@ -159,7 +159,7 @@ class Client:
             new_worksp = "<workspace><name>" + workspace + "</name></workspace>"
             response_worksp = requests.post(geoserver_rest + '/workspaces', headers={"Content-type": "text/xml"},
                                             auth=(self.username, self.password), data=new_worksp)
-            if response_worksp.status_code == 200:
+            if response_worksp.status_code == 201:
                 is_workspace = True
         else:
             is_workspace = True

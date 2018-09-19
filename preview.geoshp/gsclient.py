@@ -101,8 +101,8 @@ class Client:
 
         if (proxy_on.lower() == 'true'):
             # TODO activate proxy_on method if the proxy in clowder works
-            # return self.geoserver_manipulation_proxy_off(geoserver_url, workspace, storename, filename, projection)
-            return self.geoserver_manipulation_proxy_on(geoserver_url, workspace, storename, filename, projection, secret_key)
+            return self.geoserver_manipulation_proxy_off(geoserver_url, workspace, storename, filename, projection)
+            # return self.geoserver_manipulation_proxy_on(geoserver_url, workspace, storename, filename, projection, secret_key)
         else:
             return self.geoserver_manipulation_proxy_off(geoserver_url, workspace, storename, filename, projection)
 
@@ -123,7 +123,7 @@ class Client:
             response_worksp = requests.post(geoserver_rest + '/workspaces',
                                             headers={"Content-type": "text/xml"},
                                             auth=(self.username, self.password), data=new_worksp)
-            if response_worksp.status_code == 200:
+            if response_worksp.status_code == 201:
                 is_workspace = True
         else:
             is_workspace = True
