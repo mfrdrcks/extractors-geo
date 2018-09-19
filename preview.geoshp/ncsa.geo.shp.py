@@ -156,7 +156,7 @@ class ExtractorsGeoshpPreview(Extractor):
             else:
                 epsg = "EPSG:" + zipshp.getEpsg()
 
-            success = gsclient.uploadShapefile(self.geoserver_old, self.gs_workspace, combined_name, uploadfile, epsg, self.secret_key, self.proxy_on)
+            success = gsclient.uploadShapefile(self.geoServer, self.gs_workspace, combined_name, uploadfile, epsg, self.secret_key, self.proxy_on)
 
             if success:
                 self.logger.debug("---->success")

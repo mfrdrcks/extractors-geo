@@ -101,8 +101,8 @@ class Client:
 
         if (proxy_on.lower() == 'true'):
             # TODO activate proxy_on method if the proxy in clowder works
-            return self.geoserver_manipulation_proxy_off(geoserver_url, workspace, storename, filename, projection)
-            # return self.geoserver_manipulation_proxy_on(geoserver_url, workspace, storename, filename, projection, secret_key)
+            # return self.geoserver_manipulation_proxy_off(geoserver_url, workspace, storename, filename, projection)
+            return self.geoserver_manipulation_proxy_on(geoserver_url, workspace, storename, filename, projection, secret_key)
         else:
             return self.geoserver_manipulation_proxy_off(geoserver_url, workspace, storename, filename, projection)
 
@@ -145,8 +145,7 @@ class Client:
         else:
             return False
 
-    def geoserver_manipulation_proxy_on(self, geoserver_url, workspace, storename, filename, title, styleStr,
-                                        projection, secret_key):
+    def geoserver_manipulation_proxy_on(self, geoserver_url, workspace, storename, filename, projection, secret_key):
         # create workspace if not present
         is_workspace = False
 
@@ -162,13 +161,13 @@ class Client:
             new_worksp = "<workspace><name>" + workspace + "</name></workspace>"
             response_worksp = requests.post(geoserver_rest + '/workspaces' + '?key=' + secret_key, headers={"Content-type": "text/xml"},
                                             auth=(self.username, self.password), data=new_worksp)
-            if response_worksp.status_code == 200:
+            if response_worksp.status_code == 201:
                 is_workspace = True
         else:
             is_workspace = True
 
         if is_workspace:
-            url = self.restserver + "/workspaces/" + workspace + "/datastores/" + storename + "/file.shp"
+            url = geoserver_rest + "/workspaces/" + workspace + "/datastores/" + storename + "/file.shp"
             response = None
             with open(filename, 'rb') as f:
                 response = requests.put(url + '?key=' + secret_key, headers={'content-type': 'application/zip'}, data=f)
