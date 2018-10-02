@@ -26,6 +26,9 @@
         }
     ],
     "process": {
+        "dataset": [
+          "file.removed"
+        ],
         "file": [
           "image/tiff",
           "image/tif"

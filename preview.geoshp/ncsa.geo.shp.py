@@ -11,6 +11,7 @@ from urlparse import urljoin
 
 from pyclowder.extractors import Extractor
 from pyclowder.utils import StatusMessage
+from pyclowder.utils import CheckMessage
 import pyclowder.files
 
 import gsclient as gs
@@ -24,18 +25,7 @@ class ExtractorsGeoshpPreview(Extractor):
         # parse command line and load default logging configuration
         self.setup()
 
-        # setup logging for the exctractor
-        logging.getLogger('pyclowder').setLevel(logging.DEBUG)
-        logging.getLogger('__main__').setLevel(logging.DEBUG)
-
-    # ----------------------------------------------------------------------
-    # Process the file and upload the results
-    def process_message(self, connector, host, secret_key, resource, parameters):
         self.extractorName = os.getenv('RABBITMQ_QUEUE', "ncsa.geoshp.preview")
-        self.messageType = ["*.file.multi.files-zipped.#",
-                       "*.file.application.zip",
-                       "*.file.application.x-zip",
-                       "*.file.application.x-7z-compressed"]
         self.geoServer = os.getenv('GEOSERVER_URL')
         self.gs_username = os.getenv('GEOSERVER_USERNAME', 'admin')
         self.gs_password = os.getenv('GEOSERVER_PASSWORD', 'geosever')
@@ -43,8 +33,40 @@ class ExtractorsGeoshpPreview(Extractor):
         self.proxy_url = os.getenv('PROXY_URL', 'http://localhost:9000/api/proxy/')
         self.proxy_on = os.getenv('PROXY_ON', 'false')
 
-        self.secret_key = secret_key
-        self.logger = logging.getLogger(__name__)
+        self.datasetid = None
+        self.logger = logging.getLogger('geoshp preview')
+        self.logger.setLevel(logging.DEBUG)
+        # setup logging for the exctractor
+        logging.getLogger('pyclowder').setLevel(logging.DEBUG)
+        logging.getLogger('__main__').setLevel(logging.DEBUG)
+
+    def check_message(self, connector, host, secret_key, resource, parameters):
+        logger = logging.getLogger('check_message')
+        logger.setLevel(logging.DEBUG)
+        if 'activity' in parameters:
+            fileid = parameters.get('id')
+            action = parameters.get('activity')
+            logger.debug("activity %s for fileid %s " % (action, str(fileid)))
+            if 'removed' == action:
+                fileid = parameters['id']
+                if 'source' in parameters:
+                    mimetype = parameters.get('source').get('mimeType')
+                    logger.debug("mimetype: %s for fileid %s " % (mimetype, str(fileid)))
+                filename = parameters.get('source').get('extra').get('filename')
+                if filename is None:
+                    logger.warn('can not get filename for fileid %s' % str(fileid))
+                layername = self.gs_workspace + ':' + filename + '_' + str(fileid)
+
+                logger.debug('remove layername %s' % layername)
+                logger.debug("CheckMessage.ignore: activity %s for fileid %s " % (action, str(fileid)))
+                self.remove_geoserver_layer(layername)
+                logger.debug("activity %s for fileid %s is done" % (action, str(fileid)))
+                return CheckMessage.ignore
+        return CheckMessage.download
+
+    # ----------------------------------------------------------------------
+    # Process the file and upload the results
+    def process_message(self, connector, host, secret_key, resource, parameters):
 
         """Process the compressed shapefile and create geoserver layer"""
         tmpfile = None
@@ -54,7 +76,7 @@ class ExtractorsGeoshpPreview(Extractor):
             fileid = resource['id']
 
             # call actual program
-            result = self.extractZipShp(inputfile, fileid, filename)
+            result = self.extractZipShp(inputfile, fileid, filename, secret_key)
 
             # store results as metadata
             if not result['isZipShp'] or len(result['errorMsg']) > 0:
@@ -113,8 +135,7 @@ class ExtractorsGeoshpPreview(Extractor):
         cat.delete(store)
         cat.reload
 
-
-    def extractZipShp(self, inputfile, fileid, filename):
+    def extractZipShp(self, inputfile, fileid, filename, secret_key):
         storename = fileid
         msg = {}
         msg['errorMsg'] = []
@@ -151,7 +172,7 @@ class ExtractorsGeoshpPreview(Extractor):
             else:
                 epsg = "EPSG:" + zipshp.getEpsg()
 
-            success = gsclient.uploadShapefile(self.gs_workspace, combined_name, uploadfile, epsg, self.secret_key, self.proxy_on)
+            success = gsclient.uploadShapefile(self.gs_workspace, combined_name, uploadfile, epsg, secret_key, self.proxy_on)
 
             if success:
                 self.logger.debug("---->success")
