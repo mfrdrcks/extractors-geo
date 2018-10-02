@@ -10,6 +10,7 @@ from urlparse import urljoin
 
 from pyclowder.extractors import Extractor
 from pyclowder.utils import StatusMessage
+from pyclowder.utils import CheckMessage
 import pyclowder.files
 from osgeo import gdal
 
@@ -25,13 +26,6 @@ class ExtractorsGeotiffPreview(Extractor):
         # parse command line and load default logging configuration
         self.setup()
 
-        # setup logging for the exctractor
-        logging.getLogger('pyclowder').setLevel(logging.DEBUG)
-        logging.getLogger('__main__').setLevel(logging.DEBUG)
-
-    # ----------------------------------------------------------------------
-    # Process the file and upload the results
-    def process_message(self, connector, host, secret_key, resource, parameters):
         self.extractorName = os.getenv('RABBITMQ_QUEUE', "ncsa.geoshp.preview")
         self.messageType = ["*.file.image.tiff", "*.file.image.tif"]
         self.geoServer = os.getenv('GEOSERVER_URL')
@@ -41,7 +35,37 @@ class ExtractorsGeotiffPreview(Extractor):
         self.proxy_on = os.getenv('PROXY_ON', 'false')
         self.raster_style = "rasterTemplate.xml"
 
-        self.secret_key = secret_key
+        # setup logging for the exctractor
+        logging.getLogger('pyclowder').setLevel(logging.DEBUG)
+        logging.getLogger('__main__').setLevel(logging.DEBUG)
+
+    def check_message(self, connector, host, secret_key, resource, parameters):
+        logger = logging.getLogger('check_message')
+        logger.setLevel(logging.DEBUG)
+        if 'activity' in parameters:
+            fileid = parameters.get('id')
+            action = parameters.get('activity')
+            logger.debug("activity %s for fileid %s " % (action, str(fileid)))
+            if 'removed' == action:
+                fileid = parameters['id']
+                if 'source' in parameters:
+                    mimetype = parameters.get('source').get('mimeType')
+                    logger.debug("mimetype: %s for fileid %s " % (mimetype, str(fileid)))
+                filename = parameters.get('source').get('extra').get('filename')
+                if filename is None:
+                    logger.warn('can not get filename for fileid %s' % str(fileid))
+                layername = self.gs_workspace + ':' + filename + '_' + str(fileid)
+
+                logger.debug('remove layername %s' % layername)
+                logger.debug("CheckMessage.ignore: activity %s for fileid %s " % (action, str(fileid)))
+                self.remove_geoserver_layer(layername)
+                logger.debug("activity %s for fileid %s is done" % (action, str(fileid)))
+                return CheckMessage.ignore
+        return CheckMessage.download
+
+    # ----------------------------------------------------------------------
+    # Process the file and upload the results
+    def process_message(self, connector, host, secret_key, resource, parameters):
         self.logger = logging.getLogger(__name__)
 
         """Process the geotiff and create geoserver layer"""
@@ -57,7 +81,7 @@ class ExtractorsGeotiffPreview(Extractor):
 
         try:
             # call actual program
-            result = self.extractGeotiff(inputfile, fileid, filename)
+            result = self.extractGeotiff(inputfile, fileid, filename, secret_key)
 
             if not result['WMS Layer URL'] or not result['WMS Service URL'] or not result['WMS Layer URL']:
                 self.logger.info('[%s], inputfile: %s has empty result', fileid, inputfile)
@@ -122,7 +146,7 @@ class ExtractorsGeotiffPreview(Extractor):
         cat.delete(store)
         cat.reload
 
-    def extractGeotiff(self, inputfile, fileid, filename):
+    def extractGeotiff(self, inputfile, fileid, filename, secret_key):
         storeName = fileid
         msg = {}
         msg['errorMsg'] = []
@@ -164,7 +188,11 @@ class ExtractorsGeotiffPreview(Extractor):
             # merge file name and id and make a new store name
             combined_name = filename + "_" + storeName
 
-            success = gsclient.uploadGeotiff(self.geoserver_old, self.gs_workspace, combined_name, uploadfile, filename, style, epsg, self.secret_key, self.proxy_on)
+
+            #success = gsclient.uploadGeotiff(self.geoserver_old, self.gs_workspace, combined_name, uploadfile, filename, style, epsg, self.secret_key, self.proxy_on)
+
+            success = gsclient.uploadGeotiff(self.gs_workspace, combined_name, uploadfile, filename, style, epsg, secret_key, self.proxy_on)
+
             if success:
                 self.logger.debug("upload geotiff successfully")
                 metadata = gsclient.mintMetadata(self.gs_workspace, combined_name, geotiffUtil.getExtent())

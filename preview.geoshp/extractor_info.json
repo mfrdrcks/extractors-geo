@@ -18,6 +18,9 @@
         }
     ],
     "process": {
+        "dataset": [
+          "file.removed"
+        ],
         "file": [
             "multi.files-zipped.#",
             "application/zip",
