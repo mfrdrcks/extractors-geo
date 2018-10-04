@@ -179,6 +179,8 @@ class ExtractorsGeotiffPreview(Extractor):
                 parsed_uri = urlparse(self.geoServer)
                 gs_domain = u'{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
                 geoserver_rest = self.geoServer.replace(gs_domain, self.proxy_url)
+            else:
+                geoserver_rest = self.geoServer
 
             epsg = "EPSG:" + str(geotiffUtil.getEpsg())
             style = None

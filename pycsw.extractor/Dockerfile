@@ -40,4 +40,4 @@ ENV RABBITMQ_URI="" \
     PROXY_ON='false'
 
 # copy rest of the files needed
-COPY entrypoint.sh *.py extractor_info.json pycsw_insert_template.xml /home/clowder/
+COPY entrypoint.sh *.py extractor_info.json pycsw_insert_template.xml pycsw_remove_template.xml /home/clowder/
