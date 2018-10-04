@@ -11,6 +11,7 @@ import urlparse
 # from pyclowder import extractors
 from pyclowder.extractors import Extractor
 from pyclowder.utils import StatusMessage
+from pyclowder.utils import CheckMessage
 import pyclowder.files
 
 from osgeo import gdal
@@ -37,6 +38,34 @@ class PycswExtractor(Extractor):
         logging.getLogger('pyclowder').setLevel(logging.DEBUG)
         logging.getLogger('__main__').setLevel(logging.DEBUG)
 
+    def check_message(self, connector, host, secret_key, resource, parameters):
+        logger = logging.getLogger('check_message')
+        logger.setLevel(logging.DEBUG)
+        if 'activity' in parameters:
+            fileid = parameters.get('id')
+            action = parameters.get('activity')
+            logger.debug("activity %s for fileid %s " % (action, str(fileid)))
+            if 'removed' == action:
+                fileid = parameters['id']
+                if 'source' in parameters:
+                    mimetype = parameters.get('source').get('mimeType')
+                    logger.debug("mimetype: %s for fileid %s " % (mimetype, str(fileid)))
+                filename = parameters.get('source').get('extra').get('filename')
+                if filename is None:
+                    logger.warn('can not get filename for fileid %s' % str(fileid))
+                combined_name = filename + "_" + fileid
+                layername = self.gs_workspace + ':' + combined_name
+
+                logger.debug('remove layername %s' % layername)
+                logger.debug("CheckMessage.ignore: activity %s for fileid %s " % (action, str(fileid)))
+                result = self.remove_pycsw_entry(layername)
+                if (result):
+                    logger.debug("activity %s for fileid %s is done" % (action, str(fileid)))
+                else:
+                    logger.debug("activity %s for fileid %s has failed" % (action, str(fileid)))
+                return CheckMessage.ignore
+        return CheckMessage.download
+
     # ----------------------------------------------------------------------
     # Process the file and upload the results
     def process_message(self, connector, host, secret_key, resource, parameters):
@@ -49,7 +78,6 @@ class PycswExtractor(Extractor):
                        "*.file.image.tif"
                        ]
         self.geoServer = os.getenv('GEOSERVER_URL')
-        self.gs_workspace = os.getenv('GEOSERVER_WORKSPACE', 'clowder')
         self.proxy_url = os.getenv('PROXY_URL')
         self.proxy_on = os.getenv('PROXY_ON', 'false')
         self.raster_style = "rasterTemplate.xml"
@@ -58,6 +86,13 @@ class PycswExtractor(Extractor):
 
         self.secret_key = secret_key
         self.logger = logging.getLogger(__name__)
+
+        # get variable for geoserver workspace. This is a dataset's parent id
+        try:
+            parentid = resource['parent']['id']
+        except:
+            parentid = "no_datasets"
+        self.gs_workspace = parentid
 
         """Process the compressed shapefile and create geoserver layer"""
         tmpfile = None
@@ -155,7 +190,7 @@ class PycswExtractor(Extractor):
                         }
                     }
 
-                    # post shapefile layer to pycsw
+                    # post geotiff layer to pycsw
                     wmsserver = urlparse.urljoin(self.geoServer, 'wms')
                     layer_name = self.gs_workspace + ":" + combined_name
                     layer_url = wmsserver + '?request=GetMap&layers=' + layer_name + '&bbox=' + result['Tiff Extent'] \
@@ -164,6 +199,7 @@ class PycswExtractor(Extractor):
 
                     pyclowder.files.upload_metadata(connector, host, secret_key, fileid, metadata)
                     self.logger.debug("upload file metadata")
+
         except Exception as ex:
             self.logger.debug(ex.message)
         finally:
@@ -172,6 +208,15 @@ class PycswExtractor(Extractor):
             except OSError:
                 pass
 
+    '''
+    remove pycsw entry
+    '''
+    def remove_pycsw_entry(self, layername):
+        pycswutil = pu.Utils()
+        xml_str = pycswutil.construct_delete_xml(layername)
+        result = pycswutil.post_pycsw_xml(self.pycsw_server, xml_str, self.secret_key, self.proxy_on,
+                                          self.proxy_url)
+        return result
 
     """
     post layer information to pycsw server
@@ -198,7 +243,7 @@ class PycswExtractor(Extractor):
                                           xml_keyword,
                                           xml_title,
                                           xml_lower_corner, xml_upper_corner)
-        result = pycswutil.post_insert_xml(self.pycsw_server, xml_str, self.secret_key, self.proxy_on, self.proxy_url)
+        result = pycswutil.post_pycsw_xml(self.pycsw_server, xml_str, self.secret_key, self.proxy_on, self.proxy_url)
 
         return result
 
@@ -237,6 +282,7 @@ class PycswExtractor(Extractor):
 
             result = subprocess.check_output(['file', '-b', '--mime-type', inputfile], stderr=subprocess.STDOUT)
             self.logger.info('result.strip is [%s]', result.strip())
+
             if result.strip() != 'application/zip':
                 msg['errorMsg'].append('result.strip is: ' + str(result.strip()))
                 return msg

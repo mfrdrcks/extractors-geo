@@ -2,6 +2,7 @@
 
 import logging
 import os
+import copy
 import tempfile
 
 from urlparse import urlparse
@@ -30,7 +31,6 @@ class ExtractorsGeotiffPreview(Extractor):
         self.geoServer = os.getenv('GEOSERVER_URL')
         self.gs_username = os.getenv('GEOSERVER_USERNAME', 'admin')
         self.gs_password = os.getenv('GEOSERVER_PASSWORD', 'geoserver')
-        self.gs_workspace = os.getenv('GEOSERVER_WORKSPACE', 'clowder')
         self.proxy_url = os.getenv('PROXY_URL', 'http://localhost:9000/api/proxy/')
         self.proxy_on = os.getenv('PROXY_ON', 'false')
         self.raster_style = "rasterTemplate.xml"
@@ -54,11 +54,13 @@ class ExtractorsGeotiffPreview(Extractor):
                 filename = parameters.get('source').get('extra').get('filename')
                 if filename is None:
                     logger.warn('can not get filename for fileid %s' % str(fileid))
-                layername = self.gs_workspace + ':' + filename + '_' + str(fileid)
+                storename = filename + '_' + str(fileid)
+                layername = self.gs_workspace + ':' + storename
 
                 logger.debug('remove layername %s' % layername)
                 logger.debug("CheckMessage.ignore: activity %s for fileid %s " % (action, str(fileid)))
-                self.remove_geoserver_layer(layername)
+                self.remove_geoserver_layer(storename, layername)
+
                 logger.debug("activity %s for fileid %s is done" % (action, str(fileid)))
                 return CheckMessage.ignore
         return CheckMessage.download
@@ -72,6 +74,13 @@ class ExtractorsGeotiffPreview(Extractor):
         filename = resource['name']
         inputfile = resource["local_paths"][0]
         fileid = resource['id']
+
+        # get variable for geoserver workspace. This is a dataset's parent id
+        try:
+            parentid = resource['parent']['id']
+        except:
+            parentid = "no_datasets"
+        self.gs_workspace = parentid
 
         tmpfile = None
 
@@ -132,11 +141,16 @@ class ExtractorsGeotiffPreview(Extractor):
             except OSError:
                 pass
 
-    def remove_geoserver_layer(self, layer_name):
-        cat = Catalog(self.geoServer, username=self.gs_username, password=self.gs_password)
+    def remove_geoserver_layer(self, storename, layername):
+        last_charactor = self.geoServer[-1]
+        if last_charactor == '/':
+            geoserver_rest = self.geoServer + 'rest'
+        else:
+            geoserver_rest = self.geoServer + '/rest'
+        cat = Catalog(geoserver_rest, username=self.gs_username, password=self.gs_password)
         # worksp = cat.get_workspace(gs_workspace)
-        store = cat.get_store("store_name")
-        layer = cat.get_layer("layer_name")
+        store = cat.get_store(storename)
+        layer = cat.get_layer(layername)
         cat.delete(layer)
         cat.reload()
         cat.delete(store)
@@ -157,13 +171,13 @@ class ExtractorsGeotiffPreview(Extractor):
 
         if not geotiffUtil.hasError():
             msg['isGeotiff'] = True
-            if self.proxy_on.lower() == 'true':
-                geoserver_url = self.geoServer
-                parsed_uri = urlparse(geoserver_url)
-                gs_domain = u'{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
-                self.geoServer = geoserver_url.replace(gs_domain, self.proxy_url)
-
+            # TODO if the proxy is working, gsclient host should be changed to proxy server
             gsclient = gs.Client(self.geoServer, self.gs_username, self.gs_password)
+
+            if self.proxy_on.lower() == 'true':
+                parsed_uri = urlparse(self.geoServer)
+                gs_domain = u'{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+                geoserver_rest = self.geoServer.replace(gs_domain, self.proxy_url)
 
             epsg = "EPSG:" + str(geotiffUtil.getEpsg())
             style = None
@@ -182,7 +196,8 @@ class ExtractorsGeotiffPreview(Extractor):
             # merge file name and id and make a new store name
             combined_name = filename + "_" + storeName
 
-            success = gsclient.uploadGeotiff(self.gs_workspace, combined_name, uploadfile, filename, style, epsg, secret_key, self.proxy_on)
+            success = gsclient.uploadGeotiff(geoserver_rest, self.gs_workspace, combined_name, uploadfile, filename, style, epsg, secret_key, self.proxy_on)
+
             if success:
                 self.logger.debug("upload geotiff successfully")
                 metadata = gsclient.mintMetadata(self.gs_workspace, combined_name, geotiffUtil.getExtent())
