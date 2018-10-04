@@ -54,12 +54,14 @@ class ExtractorsGeotiffPreview(Extractor):
                 filename = parameters.get('source').get('extra').get('filename')
                 if filename is None:
                     logger.warn('can not get filename for fileid %s' % str(fileid))
+
                 storename = filename + '_' + str(fileid)
                 layername = self.gs_workspace + ':' + storename
 
                 logger.debug('remove layername %s' % layername)
                 logger.debug("CheckMessage.ignore: activity %s for fileid %s " % (action, str(fileid)))
                 self.remove_geoserver_layer(storename, layername)
+
                 logger.debug("activity %s for fileid %s is done" % (action, str(fileid)))
                 return CheckMessage.ignore
         return CheckMessage.download
@@ -194,7 +196,6 @@ class ExtractorsGeotiffPreview(Extractor):
 
             # merge file name and id and make a new store name
             combined_name = filename + "_" + storeName
-
 
             success = gsclient.uploadGeotiff(geoserver_rest, self.gs_workspace, combined_name, uploadfile, filename, style, epsg, secret_key, self.proxy_on)
 
