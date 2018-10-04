@@ -110,17 +110,10 @@ class Client:
         # create workspace if not present
         is_workspace = False
 
-        # this is a direct method, if the proxy works, this should go through proxy
-        last_charactor = geoserver_url[-1]
-        if last_charactor == '/':
-            geoserver_rest = geoserver_url + 'rest'
-        else:
-            geoserver_rest = geoserver_url + '/rest'
-
-        response_worksp = requests.get(geoserver_rest + '/workspaces/' + workspace, auth=(self.username, self.password))
+        response_worksp = requests.get(self.restserver + '/workspaces/' + workspace, auth=(self.username, self.password))
         if response_worksp.status_code != 200:
             new_worksp = "<workspace><name>" + workspace + "</name></workspace>"
-            response_worksp = requests.post(geoserver_rest + '/workspaces',
+            response_worksp = requests.post(self.restserver + '/workspaces',
                                             headers={"Content-type": "text/xml"},
                                             auth=(self.username, self.password), data=new_worksp)
             if response_worksp.status_code == 201:

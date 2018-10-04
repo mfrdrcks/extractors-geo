@@ -54,11 +54,12 @@ class ExtractorsGeotiffPreview(Extractor):
                 filename = parameters.get('source').get('extra').get('filename')
                 if filename is None:
                     logger.warn('can not get filename for fileid %s' % str(fileid))
-                layername = self.gs_workspace + ':' + filename + '_' + str(fileid)
+                storename = filename + '_' + str(fileid)
+                layername = self.gs_workspace + ':' + storename
 
                 logger.debug('remove layername %s' % layername)
                 logger.debug("CheckMessage.ignore: activity %s for fileid %s " % (action, str(fileid)))
-                self.remove_geoserver_layer(layername)
+                self.remove_geoserver_layer(storename, layername)
                 logger.debug("activity %s for fileid %s is done" % (action, str(fileid)))
                 return CheckMessage.ignore
         return CheckMessage.download
@@ -74,7 +75,10 @@ class ExtractorsGeotiffPreview(Extractor):
         fileid = resource['id']
 
         # get variable for geoserver workspace. This is a dataset's parent id
-        parentid = resource['parent']['id']
+        try:
+            parentid = resource['parent']['id']
+        except:
+            parentid = "no_datasets"
         self.gs_workspace = parentid
 
         tmpfile = None
@@ -136,11 +140,16 @@ class ExtractorsGeotiffPreview(Extractor):
             except OSError:
                 pass
 
-    def remove_geoserver_layer(self, layer_name):
-        cat = Catalog(self.geoServer, username=self.gs_username, password=self.gs_password)
+    def remove_geoserver_layer(self, storename, layername):
+        last_charactor = self.geoServer[-1]
+        if last_charactor == '/':
+            geoserver_rest = self.geoServer + 'rest'
+        else:
+            geoserver_rest = self.geoServer + '/rest'
+        cat = Catalog(geoserver_rest, username=self.gs_username, password=self.gs_password)
         # worksp = cat.get_workspace(gs_workspace)
-        store = cat.get_store("store_name")
-        layer = cat.get_layer("layer_name")
+        store = cat.get_store(storename)
+        layer = cat.get_layer(layername)
         cat.delete(layer)
         cat.reload()
         cat.delete(store)
@@ -165,11 +174,9 @@ class ExtractorsGeotiffPreview(Extractor):
             gsclient = gs.Client(self.geoServer, self.gs_username, self.gs_password)
 
             if self.proxy_on.lower() == 'true':
-                geoserver_url = self.geoServer
-                parsed_uri = urlparse(geoserver_url)
+                parsed_uri = urlparse(self.geoServer)
                 gs_domain = u'{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
-                self.geoserver_old = copy.copy(self.geoServer)
-                self.geoServer = geoserver_url.replace(gs_domain, self.proxy_url)
+                geoserver_rest = self.geoServer.replace(gs_domain, self.proxy_url)
 
             epsg = "EPSG:" + str(geotiffUtil.getEpsg())
             style = None
@@ -189,9 +196,7 @@ class ExtractorsGeotiffPreview(Extractor):
             combined_name = filename + "_" + storeName
 
 
-            #success = gsclient.uploadGeotiff(self.geoserver_old, self.gs_workspace, combined_name, uploadfile, filename, style, epsg, self.secret_key, self.proxy_on)
-
-            success = gsclient.uploadGeotiff(self.gs_workspace, combined_name, uploadfile, filename, style, epsg, secret_key, self.proxy_on)
+            success = gsclient.uploadGeotiff(geoserver_rest, self.gs_workspace, combined_name, uploadfile, filename, style, epsg, secret_key, self.proxy_on)
 
             if success:
                 self.logger.debug("upload geotiff successfully")
