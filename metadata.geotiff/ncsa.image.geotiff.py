@@ -22,8 +22,8 @@ class MetadataGeotiff(Extractor):
         self.setup()
 
         # setup logging for the exctractor
-        logging.getLogger('pyclowder').setLevel(logging.DEBUG)
-        logging.getLogger('__main__').setLevel(logging.DEBUG)
+        logging.getLogger('pyclowder').setLevel(logging.INFO)
+        logging.getLogger('__main__').setLevel(logging.INFO)
 
 
     """Process the file and upload the metadata."""
