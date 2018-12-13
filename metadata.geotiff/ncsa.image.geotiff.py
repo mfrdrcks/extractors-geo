@@ -21,8 +21,8 @@ def main():
     logger = logging.getLogger('pyclowder.extractors')
     logger.setLevel(logging.INFO)
     
-    logging.getLogger("pika").setLevel(logging.WARNING)
-    logging.getLogger("urllib3").setLevel(logging.WARNING)
+    logging.getLogger("pika").setLevel(logging.INFO)
+    logging.getLogger("urllib3").setLevel(logging.INFO)
     
     # Connect to rabbitmq.
     extractors.connect_message_bus(extractorName=extractorName, messageType=messageType, processFileFunction=process_file, 
