@@ -20,8 +20,11 @@ class MetadataGeotiff(Extractor):
 
         # parse command line and load default logging configuration
         self.setup()
-
+        logging.basicConfig(level=logging.INFO)
         # setup logging for the exctractor
+        logging.getLogger("pika").setLevel(logging.WARNING)
+        logging.getLogger("urllib3").setLevel(logging.WARNING)
+
         logging.getLogger('pyclowder').setLevel(logging.INFO)
         logging.getLogger('__main__').setLevel(logging.INFO)
 
