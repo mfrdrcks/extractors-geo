@@ -7,8 +7,16 @@ COPY requirements.txt /home/clowder/
 # Install any programs needed
 USER root
 
-RUN apt-get update && apt-get -y install python-dev python-pip python-dev build-essential python-numpy software-properties-common && apt-add-repository ppa:ubuntugis/ppa && \
-    apt-get -y install gdal-bin python-gdal python-scipy && \
+RUN apt-get update && apt-get -y install python-dev \
+    python-pip \
+    python-dev \
+    build-essential \
+    python-numpy \
+    gdal-bin \
+    python-gdal \
+    python-scipy \
+    software-properties-common && \
+    apt-add-repository ppa:ubuntugis/ppa && \
     pip install --upgrade pip==9.0.3 && \
     pip install -r /home/clowder/requirements.txt && \
     rm -rf /var/lib/apt/lists/*
