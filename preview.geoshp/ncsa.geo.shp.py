@@ -56,7 +56,9 @@ class ExtractorsGeoshpPreview(Extractor):
                     logger.warn('can not get filename for fileid %s' % str(fileid))
 
                 storename = filename + '_' + str(fileid)
+                self.logger.debug("geoserver store name %s" % storename)
                 layername = self.gs_workspace + ':' + storename
+                self.logger.debug("geoserver layer name %s" % layername)
 
                 logger.debug('remove layername %s' % layername)
                 logger.debug("CheckMessage.ignore: activity %s for fileid %s " % (action, str(fileid)))
@@ -82,6 +84,7 @@ class ExtractorsGeoshpPreview(Extractor):
             except:
                 parentid = "no_datasets"
             self.gs_workspace = parentid
+            self.logger.debug("geoserver workspace id: %s" % parentid)
 
             # call actual program
             result = self.extractZipShp(inputfile, fileid, filename, secret_key)
@@ -134,6 +137,7 @@ class ExtractorsGeoshpPreview(Extractor):
                 pass
 
     def remove_geoserver_layer(self, storename, layername):
+        self.logger.debug("start removing the geoserver layer")
         last_charactor = self.geoServer[-1]
         if last_charactor == '/':
             geoserver_rest = self.geoServer + 'rest'
@@ -142,13 +146,18 @@ class ExtractorsGeoshpPreview(Extractor):
         cat = Catalog(geoserver_rest, username=self.gs_username, password=self.gs_password)
         # worksp = cat.get_workspace(gs_workspace)
         store = cat.get_store(storename)
+        self.logger.debug("store name %s" % store)
         layer = cat.get_layer(layername)
+        self.logger.debug("layer name %s" % layer)
+        self.logger.debug("deleting the layer...")
         cat.delete(layer)
         cat.reload()
+        self.logger.debug("deleting the store...")
         cat.delete(store)
         cat.reload
 
     def extractZipShp(self, inputfile, fileid, filename, secret_key):
+        self.logger.debug("start zip shp extraction....")
         storename = fileid
         msg = {}
         msg['errorMsg'] = []
@@ -171,6 +180,7 @@ class ExtractorsGeoshpPreview(Extractor):
                 return msg
 
             uploadfile = zipshp.createZip(zipshp.tempDir, combined_name)
+            self.logger.debug("finished creating zip file %s" % uploadfile)
 
             # TODO if the proxy is working, gsclient host should be changed to proxy server
             gsclient = gs.Client(self.geoServer, self.gs_username, self.gs_password)
@@ -186,11 +196,14 @@ class ExtractorsGeoshpPreview(Extractor):
                 epsg = "EPSG:4326"
             else:
                 epsg = "EPSG:" + zipshp.getEpsg()
-
+            self.logger.debug("geoserver url %s" % geoserver_rest)
+            self.logger.debug("geoserver workspace %s" % self.gs_workspace)
+            self.logger.debug("uploading file name %s" % uploadfile)
+            self.logger.debug("start uploading shapefile to geoserver....")
             success = gsclient.uploadShapefile(geoserver_rest, self.gs_workspace, combined_name, uploadfile, epsg, secret_key, self.proxy_on)
 
             if success:
-                self.logger.debug("---->success")
+                self.logger.debug("uploading shapefile to geoserver ---->success")
                 metadata = gsclient.mintMetadata(self.gs_workspace, combined_name, zipshp.getExtent())
                 # TODO: create thumbnail and upload it to Medici
                 # thumbPath = gsclient.createThumbnail(gs_workspace, storeName, zipshp.getExtent(), "200", "180")

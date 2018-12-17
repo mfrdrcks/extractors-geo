@@ -100,6 +100,7 @@ class Client:
         self.logger.debug("Uploading shapefile" + filename +"...")
 
         if (proxy_on.lower() == 'true'):
+            self.logger.debug("proxy set to on ....")
             # TODO activate proxy_on method if the proxy in clowder works
             return self.geoserver_manipulation_proxy_off(geoserver_url, workspace, storename, filename, projection)
             # return self.geoserver_manipulation_proxy_on(geoserver_url, workspace, storename, filename, projection, secret_key)
@@ -107,9 +108,11 @@ class Client:
             return self.geoserver_manipulation_proxy_off(geoserver_url, workspace, storename, filename, projection)
 
     def geoserver_manipulation_proxy_off(self, geoserver_url, workspace, storename, filename, projection):
+        self.logger.debug("start geoserver manipulation....")
         # create workspace if not present
         is_workspace = False
 
+        self.logger.debug("checking workspace %s" % workspace)
         response_worksp = requests.get(self.restserver + '/workspaces/' + workspace, auth=(self.username, self.password))
         if response_worksp.status_code != 200:
             new_worksp = "<workspace><name>" + workspace + "</name></workspace>"
@@ -124,6 +127,7 @@ class Client:
         if is_workspace:
             url = self.restserver+"/workspaces/"+workspace+"/datastores/" + storename + "/file.shp"
             response = None
+            self.logger.debug("put file to geosever %s" % url)
             with open(filename, 'rb') as f:
                 response = requests.put(url, headers={'content-type':'application/zip'}, auth=(self.username, self.password),data=f)
             self.logger.debug(str(response.status_code) + " " + response.text)
