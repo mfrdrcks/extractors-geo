@@ -88,6 +88,7 @@ class ExtractorsGeoshpPreview(Extractor):
 
             # call actual program
             result = self.extractZipShp(inputfile, fileid, filename, secret_key)
+            self.logger.debug("finished extract zipshp process")
 
             # store results as metadata
             if not result['isZipShp'] or len(result['errorMsg']) > 0:
@@ -205,6 +206,7 @@ class ExtractorsGeoshpPreview(Extractor):
             if success:
                 self.logger.debug("uploading shapefile to geoserver ---->success")
                 metadata = gsclient.mintMetadata(self.gs_workspace, combined_name, zipshp.getExtent())
+                self.logger.debug("created metadata from geoserver")
                 # TODO: create thumbnail and upload it to Medici
                 # thumbPath = gsclient.createThumbnail(gs_workspace, storeName, zipshp.getExtent(), "200", "180")
 
