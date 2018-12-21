@@ -20,6 +20,10 @@ class Client:
         self.layerName = None
         logging.basicConfig(format="%(asctime)-15s %(name)-10s %(levelname)-7s : %(message)s", level=logging.WARN)
         self.logger = logging.getLogger("gsclient")
+        self.logger.setLevel(logging.DEBUG)
+        # setup logging for the gsclient
+        logging.getLogger('pyclowder').setLevel(logging.DEBUG)
+        logging.getLogger('__main__').setLevel(logging.DEBUG)
 
     ## this method assume that there is 1 store per layer
     def getResourceByStoreName(self, storename, workspace):

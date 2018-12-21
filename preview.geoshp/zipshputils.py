@@ -35,6 +35,10 @@ class Utils:
         self.zipShpProp['extent'] = 'UNKNOWN'
         logging.basicConfig(format="%(asctime)-15s %(name)-10s %(levelname)-7s : %(message)s", level=logging.WARN)
         self.logger = logging.getLogger("zipshputils")
+        self.logger.setLevel(logging.DEBUG)
+        # setup logging for the gsclient
+        logging.getLogger('pyclowder').setLevel(logging.DEBUG)
+        logging.getLogger('__main__').setLevel(logging.DEBUG)
         ts = time.gmtime()
         self.time_stamp = str(ts.tm_mon)+str(ts.tm_hour)+str(ts.tm_min)+str(ts.tm_sec)
 
@@ -221,7 +225,7 @@ class Utils:
             return None
         self.logger.debug("shpName: "+ self.zipShpProp['shpName'])
         # rezip the files in zip format if it is not a zip file
-        self.zipShpProp['targetZip'] = os.path.join(destinationDir, self.zipShpProp['shpName']+'.zip')
+        self.zipShpProp['targetZip'] = os.path.join(destinationDir, newname + '.zip')
         self.logger.debug("targetZip : "+ self.zipShpProp['targetZip'])
 
         # rename all the files in the folder
