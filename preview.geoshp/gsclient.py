@@ -69,6 +69,18 @@ class Client:
             self.layer = layers[0]
             return self.layer
 
+    def mintMetadataWithoutGeoserver(self, workspace, filename, extent):
+        self.logger.debug("Creating wms metadata ... ")
+        metadata = {}
+        wmsLayerName = workspace + ':' + filename
+        metadata['WMS Layer Name'] = wmsLayerName
+        metadata['WMS Service URL'] = self.wmsserver
+        metadata[
+            'WMS Layer URL'] = self.wmsserver + '?request=GetMap&layers=' + wmsLayerName + '&bbox=' + extent + '&width=640&height=480&srs=EPSG:3857&format=image%2Fpng'
+
+        self.logger.debug('[DONE]')
+        return metadata
+
     def mintMetadata(self, workspace, storename, extent):
         self.logger.debug("Creating wms metadata ... ") 
         metadata = {}
