@@ -203,7 +203,8 @@ class ExtractorsGeotiffPreview(Extractor):
 
             if success:
                 self.logger.debug("upload geotiff successfully")
-                metadata = gsclient.mintMetadata(self.gs_workspace, combined_name, geotiffUtil.getExtent())
+                metadata = gsclient.mintMetadataWithoutGeoserver(self.gs_workspace, combined_name, geotiffUtil.getExtent())
+                # metadata = gsclient.mintMetadata(self.gs_workspace, combined_name, geotiffUtil.getExtent())
                 self.logger.debug("mintMetadata obtained")
                 if len(metadata) == 0:
                     msg['errorMsg'].append("Coulnd't generate metadata")
