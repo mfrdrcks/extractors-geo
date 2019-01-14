@@ -21,7 +21,7 @@
           "file.removed"
         ],
         "file": [
-            "multi.files-zipped.#",
+            "multi.files-zipped",
             "application/zip",
             "application/x-zip",
             "application/x-7z-compressed",
