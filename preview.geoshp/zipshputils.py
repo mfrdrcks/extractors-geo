@@ -213,11 +213,45 @@ class Utils:
         ct = osr.CoordinateTransformation(osrs, dsrs)
         layer = shpfile.GetLayer(0)
         a = layer.GetExtent()
+        a = self.validateBbox(a)
         ab = ct.TransformPoint(a[0],a[2],0)
         cd = ct.TransformPoint(a[1],a[3],0)
         r= [ab[0], ab[1], cd[0], cd[1]]
 
         return ','.join(map(str,r))
+
+    def validateBbox(self, intuple):
+        lst = list(intuple)
+        tuple_changed = False
+        if intuple[0] >= 179:
+            lst[0] = 179
+            tuple_changed = True
+        if intuple[0] <= -179:
+            lst[0] = -179
+            tuple_changed = True
+        if intuple[2] >= 179:
+            lst[2] = 179
+            tuple_changed = True
+        if intuple[2] <= -179:
+            lst[2] = -179
+            tuple_changed = True
+        if intuple[1] >= 89:
+            lst[1] = 89
+            tuple_changed = True
+        if intuple[1] <= -89:
+            lst[1] = -89
+            tuple_changed = True
+        if intuple[3] >= 89:
+            lst[3] = 89
+            tuple_changed = True
+        if intuple[3] <= -89:
+            lst[3] = -89
+            tuple_changed = True
+
+        if tuple_changed:
+            return tuple(lst)
+        else:
+            return intuple
 
     def createZip(self, destinationDir, newname):
         if self.zipShpProp['hasError']:
