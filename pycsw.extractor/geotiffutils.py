@@ -102,8 +102,6 @@ class Utils:
         ds = gdal.Open(self.geotiff)
 
         dsGtrn = ds.GetGeoTransform()
-        # quick fix to avoid wrong bounding box calculation when the input extent is world wide
-        dsGtrn = self.validateBbox(dsGtrn)
         osrs = osr.SpatialReference()
         osrs.ImportFromWkt(ds.GetProjectionRef())
         dsrs = osr.SpatialReference()
@@ -127,28 +125,6 @@ class Utils:
 
         ds = None
         return ','.join(map(str, r))
-
-    def validateBbox(self, intuple):
-        lst = list(intuple)
-        tuple_changed = False
-
-        if intuple[0] >=179:
-            lst[0] = 179
-            tuple_changed = True
-        if intuple[0] <= -179:
-            lst[0] = -179
-            tuple_changed = True
-        if intuple[3] >= 89:
-            lst[3] = 89
-            tuple_changed = True
-        if intuple[3] <= -89:
-            lst[3] = -89
-            tuple_changed = True
-
-        if tuple_changed:
-            return tuple(lst)
-        else:
-            return intuple
 
     def createStyle(self):
         if not self.isGeotiff:

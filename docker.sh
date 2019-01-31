@@ -8,7 +8,7 @@
 # VERSION : the list of tags to use, if not set this will be based on
 #           the branch name.
 
-#DEBUG=echo
+# DEBUG=echo
 
 # set default for clowder
 PROJECT=${PROJECT:-"clowder"}
@@ -17,18 +17,14 @@ PROJECT=${PROJECT:-"clowder"}
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 VERSION=${VERSION:-""}
 if [ "$VERSION" = "" ]; then
-  VERSION="$(git tag --points-at HEAD)"
-  if [ "$VERSION" = "" ]; then
-    VERSION="${BRANCH}"
-  fi
   if [ "$BRANCH" = "master" ]; then
     PUSH=${PUSH:-"push"}
     VERSION="${VERSION} latest"
   elif [ "$BRANCH" = "develop" ]; then
     PUSH=${PUSH:-"push"}
-    VERSION="${VERSION} latest"
+    VERSION="${VERSION} develop"
   elif [ "$( echo $BRANCH | sed -e 's#^release/.*$#release#')" = "release" ]; then
-    PUSH=${PUSH:-"push"}
+    # PUSH=${PUSH:-"push"}
     VERSION="$( echo $BRANCH | sed -e 's#^release/\(.*\)$#\1#' )"
   else
     PUSH=${PUSH:-""}
@@ -68,6 +64,7 @@ create() {
         if [ "$PUSH" = "push" ]; then
           ${DEBUG} docker push ${p}/${NAME}:${v}
         fi
+        ${DEBUG} docker rmi ${p}/${NAME}:${v}
       done
     fi
   done
@@ -94,6 +91,7 @@ create() {
 create "./metadata.geotiff"   "extractors-geotiff-metadata" "Dockerfile"
 create "./preview.geotiff"     "extractors-geotiff-preview"  "Dockerfile"
 create "./preview.geoshp"     "extractors-geoshp-preview"   "Dockerfile"
+create "./pycsw.extractor"    "extractors-pycsw" "Dockerfile"
 # remove latest tags
 for r in $LATEST; do
   ${DEBUG} docker rmi ${r}

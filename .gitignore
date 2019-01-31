@@ -1,1 +1,4 @@
 .idea
+
+# python binaries
+*.pyc
