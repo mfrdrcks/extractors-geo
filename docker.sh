@@ -92,6 +92,7 @@ create "./metadata.geotiff"   "extractors-geotiff-metadata" "Dockerfile"
 create "./preview.geotiff"     "extractors-geotiff-preview"  "Dockerfile"
 create "./preview.geoshp"     "extractors-geoshp-preview"   "Dockerfile"
 create "./pycsw.extractor"    "extractors-pycsw" "Dockerfile"
+create "./geoserver"    "geoserver" "Dockerfile"
 # remove latest tags
 for r in $LATEST; do
   ${DEBUG} docker rmi ${r}
