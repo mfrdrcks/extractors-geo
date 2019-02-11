@@ -132,16 +132,16 @@ class Utils:
         lst = list(intuple)
         tuple_changed = False
 
-        if intuple[0] >=179:
+        if intuple[0] <= 180 and intuple[0] > 179:
             lst[0] = 179
             tuple_changed = True
-        if intuple[0] <= -179:
+        if intuple[0] >= -180 and intuple[0] < -179:
             lst[0] = -179
             tuple_changed = True
-        if intuple[3] >= 89:
+        if intuple[3] <= 90 and intuple[3] > 89:
             lst[3] = 89
             tuple_changed = True
-        if intuple[3] <= -89:
+        if intuple[3] >= -90 and intuple[3] < -89:
             lst[3] = -89
             tuple_changed = True
 
