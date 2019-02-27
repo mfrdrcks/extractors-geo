@@ -117,12 +117,15 @@ class PycswExtractor(Extractor):
 
                 # store results as metadata
                 if not result['isZipShp'] or len(result['errorMsg']) > 0:
-                    channel = parameters['channel']
-                    header = parameters['header']
-                    for i in range(len(result['errorMsg'])):
-                        connector.status_update(StatusMessage.error, {"type": "file", "id": fileid},
-                                                result['errorMsg'][i])
-                        self.logger.info('[%s] : %s', fileid, result['errorMsg'][i], extra={'fileid', fileid})
+                    try:
+                        # channel = parameters['channel']
+                        # header = parameters['header']
+                        for i in range(len(result['errorMsg'])):
+                            connector.status_update(StatusMessage.error, {"type": "file", "id": fileid},
+                                                    result['errorMsg'][i])
+                            self.logger.info('[%s] : %s', fileid, result['errorMsg'][i], extra={'fileid', fileid})
+                    except:
+                        self.logger.debug("There is no channel or headr is zip shp")
                 else:
                     # Context URL
                     context_url = "https://clowder.ncsa.illinois.edu/contexts/metadata.jsonld"
@@ -162,8 +165,8 @@ class PycswExtractor(Extractor):
 
                 # store results as metadata
                 if not result['isGeotiff'] or len(result['errorMsg']) > 0:
-                    channel = parameters['channel']
-                    header = parameters['header']
+                    # channel = parameters['channel']
+                    # header = parameters['header']
                     for i in range(len(result['errorMsg'])):
                         connector.status_update(StatusMessage.error, {"type": "file", "id": fileid},
                                                 result['errorMsg'][i])
@@ -320,7 +323,7 @@ class PycswExtractor(Extractor):
                 msg['errorMsg'].append(".prj file is missing")
 
             if error['epsg'] == 'UNKNOWN':
-                msg['errorMsg'].append("The projection ccould not be recognized")
+                msg['errorMsg'].append("The projection could not be recognized")
 
             if error['extent'] == 'UNKNOWN':
                 msg['errorMsg'].append("The extent could not be calculated")
@@ -329,11 +332,11 @@ class PycswExtractor(Extractor):
     def extractGeotiff(self, inputfile, fileid, filename):
         storeName = fileid
         msg = {}
-        msg = {}
         msg['errorMsg'] = []
         msg['CSW Service URL'] = ''
         msg['CSW Record URL'] = ''
         msg['Tiff Extent'] = ''
+        msg['isGeotiff'] = False
         combined_name = filename + "_" + storeName
 
         uploadfile = inputfile

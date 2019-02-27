@@ -92,12 +92,15 @@ class ExtractorsGeoshpPreview(Extractor):
 
             # store results as metadata
             if not result['isZipShp'] or len(result['errorMsg']) > 0:
-                channel = parameters['channel']
-                header = parameters['header']
-                for i in range(len(result['errorMsg'])):
-                    connector.status_update(StatusMessage.error, {"type": "file", "id": fileid},
-                                            result['errorMsg'][i])
-                    self.logger.info('[%s] : %s', fileid, result['errorMsg'][i], extra={'fileid', fileid})
+                try:
+                    # channel = parameters['channel']
+                    # header = parameters['header']
+                    for i in range(len(result['errorMsg'])):
+                        connector.status_update(StatusMessage.error, {"type": "file", "id": fileid},
+                                                result['errorMsg'][i])
+                        self.logger.info('[%s] : %s', fileid, result['errorMsg'][i], extra={'fileid', fileid})
+                except:
+                    self.logger.debug("There is no channel or headr is zip shp")
             else:
                 # Context URL
                 context_url = "https://clowder.ncsa.illinois.edu/contexts/metadata.jsonld"
@@ -134,7 +137,7 @@ class ExtractorsGeoshpPreview(Extractor):
             try:
                 os.remove(tmpfile)
                 self.logger.debug("delete tmpfile: " + tmpfile)
-            except OSError:
+            except StandardError, OSError:
                 pass
 
     def remove_geoserver_layer(self, storename, layername):
@@ -150,12 +153,15 @@ class ExtractorsGeoshpPreview(Extractor):
         self.logger.debug("store name %s" % store)
         layer = cat.get_layer(layername)
         self.logger.debug("layer name %s" % layer)
-        self.logger.debug("deleting the layer...")
-        cat.delete(layer)
-        cat.reload()
-        self.logger.debug("deleting the store...")
-        cat.delete(store)
-        cat.reload
+        try:
+            self.logger.debug("deleting the layer...")
+            cat.delete(layer)
+            cat.reload()
+            self.logger.debug("deleting the store...")
+            cat.delete(store)
+            cat.reload
+        except StandardError:
+            self.logger.error("Failed to remove from geoserver")
 
     def extractZipShp(self, inputfile, fileid, filename, secret_key):
         self.logger.debug("start zip shp extraction....")
@@ -238,6 +244,7 @@ class ExtractorsGeoshpPreview(Extractor):
             if error['shpFile'] == None:
                 msg['isZipShp'] = False
                 msg['errorMsg'].append("normal compressed file")
+
                 return msg
 
             if error['hasDir']:
@@ -262,7 +269,7 @@ class ExtractorsGeoshpPreview(Extractor):
                 msg['errorMsg'].append(".prj file is missing")
 
             if error['epsg'] == 'UNKNOWN':
-                msg['errorMsg'].append("The projection ccould not be recognized")
+                msg['errorMsg'].append("The projection could not be recognized")
 
             if error['extent'] == 'UNKNOWN':
                 msg['errorMsg'].append("The extent could not be calculated")

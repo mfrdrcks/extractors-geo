@@ -1,12 +1,10 @@
 #!/usr/bin/python
-import sys
 import json
 import urllib
 from osgeo import osr
 from osgeo import ogr
 import tempfile
 import subprocess
-import shutil
 import errno
 import os
 import os.path
@@ -55,24 +53,30 @@ class Utils:
 
         # check the self.zipShpProp
         self.files = [os.path.join(self.tempDir, f) for f in os.listdir(self.tempDir)]
+
+        self.no_proj = 'no_proj'
         
         if not self.checkZipShp():
             # find projection
             epsg_code = self.findProjection()
-            if epsg_code != 'None':
-                self.zipShpProp['epsg'] = epsg_code
-            else:
+            if epsg_code == self.no_proj:
                 self.zipShpProp['epsg'] = 'UNKNOWN'
-
-            # find extent
-            if self.zipShpProp['epsg'] != 'UNKNOWN':
-                extent = self.findExtent()
-                if extent != 'None':
-                    self.zipShpProp['extent'] = extent
-                else:
-                    self.zipShpProp['extent'] = 'UNKNOWN'
-            if self.zipShpProp['epsg'] == 'UNKNOWN' or self.zipShpProp['extent'] == 'UNKNOWN':
                 self.zipShpProp['hasError'] = True
+            else:
+                if epsg_code != 'None':
+                    self.zipShpProp['epsg'] = epsg_code
+                else:
+                    self.zipShpProp['epsg'] = 'UNKNOWN'
+
+                # find extent
+                if self.zipShpProp['epsg'] != 'UNKNOWN':
+                    extent = self.findExtent()
+                    if extent != 'None':
+                        self.zipShpProp['extent'] = extent
+                    else:
+                        self.zipShpProp['extent'] = 'UNKNOWN'
+                if self.zipShpProp['epsg'] == 'UNKNOWN' or self.zipShpProp['extent'] == 'UNKNOWN':
+                    self.zipShpProp['hasError'] = True
 
     def __del__(self):
         # delete the temp dir
@@ -174,9 +178,15 @@ class Utils:
 
         try:
             srs = osr.SpatialReference()
+            # check if the projection is not working projection
+            epsg_no = self.checkSpecialProjection(prj_txt)
+            if epsg_no > 0:
+                logging.debug("the projection does not work correctly")
+                return self.no_proj
             srs.ImportFromESRI([prj_txt])
             srs.AutoIdentifyEPSG()
             prj_code=srs.GetAuthorityCode(None)
+
         except:
             prj_code = 'None'
     
@@ -196,6 +206,15 @@ class Utils:
             prj_code = 'None'
         
         return prj_code
+
+    def checkSpecialProjection(self, prj_txt):
+        special_prj_list = [['Albers_Equal_Area_Conic', 102008]]
+
+        for i in range(len(special_prj_list)):
+            if special_prj_list[i][0] in prj_txt:
+                return special_prj_list[i][1]
+
+        return 0
     
     def findExtent(self):
         if self.zipShpProp['hasError']:

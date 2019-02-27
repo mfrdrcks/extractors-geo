@@ -93,9 +93,9 @@ class ExtractorsGeotiffPreview(Extractor):
                 self.logger.info('[%s], inputfile: %s has empty result', fileid, inputfile)
 
             # store results as metadata
-            elif not result['isGeotiff'] or len(result['errorMsg']) > 0:
-                channel = parameters['channel']
-                header = parameters['header']
+            if not result['isGeotiff'] or len(result['errorMsg']) > 0:
+                # channel = parameters['channel']
+                # header = parameters['header']
                 for i in range(len(result['errorMsg'])):
                     connector.status_update(StatusMessage.error, {"type": "file", "id": fileid},
                                             result['errorMsg'][i])
@@ -139,7 +139,7 @@ class ExtractorsGeotiffPreview(Extractor):
             try:
                 os.remove(tmpfile)
                 self.logger.debug("delete tmpfile: " + tmpfile)
-            except OSError:
+            except StandardError, OSError:
                 pass
 
     def remove_geoserver_layer(self, storename, layername):
@@ -152,10 +152,13 @@ class ExtractorsGeotiffPreview(Extractor):
         # worksp = cat.get_workspace(gs_workspace)
         store = cat.get_store(storename)
         layer = cat.get_layer(layername)
-        cat.delete(layer)
-        cat.reload()
-        cat.delete(store)
-        cat.reload
+        try:
+            cat.delete(layer)
+            cat.reload()
+            cat.delete(store)
+            cat.reload
+        except StandardError:
+            self.logger.error("Failed to remove from geoserver")
 
     def extractGeotiff(self, inputfile, fileid, filename, secret_key):
         storeName = fileid
@@ -230,7 +233,7 @@ class ExtractorsGeotiffPreview(Extractor):
                 return msg
 
             if geotiffUtil.getEpsg() == 'UNKNOWN':
-                msg['errorMsg'].append("The projection ccould not be recognized")
+                msg['errorMsg'].append("The projection could not be recognized")
 
             if geotiffUtil.getExtent() == 'UNKNOWN':
                 msg['errorMsg'].append("The extent could not be calculated")

@@ -18,7 +18,7 @@ class Utils:
         
         if self.isGeotiff:
             tmpEpsg = self.findProjection()
-            if tmpEpsg != 'None':
+            if tmpEpsg != 'None' and tmpEpsg != None:
                 self.epsg = tmpEpsg
             else:
                 self.epsg = 'UNKNOWN'

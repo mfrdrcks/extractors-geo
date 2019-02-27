@@ -152,7 +152,7 @@ class Client:
                 self.logger.debug("[DONE]")
                 return False
 
-                self.set_projection(storename, workspace, projection)
+            self.set_projection(storename, workspace, projection)
 
             return True
         else:
