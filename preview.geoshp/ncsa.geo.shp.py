@@ -244,7 +244,6 @@ class ExtractorsGeoshpPreview(Extractor):
             if error['shpFile'] == None:
                 msg['isZipShp'] = False
                 msg['errorMsg'].append("normal compressed file")
-
                 return msg
 
             if error['hasDir']:
