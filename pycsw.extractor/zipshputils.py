@@ -19,7 +19,6 @@ class Utils:
     def __init__(self, shpzipfile, zipUtil="/usr/bin/7z"):
         self.zipUtil = zipUtil
         self.shpzipfile = shpzipfile
-
         self.zipShpProp = {}
         self.zipShpProp['hasError'] = False
         self.zipShpProp['hasDir'] = False
