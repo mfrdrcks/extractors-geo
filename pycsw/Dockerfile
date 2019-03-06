@@ -6,7 +6,7 @@ RUN pip3 install .
 
 ENV PYCSW_CONFIG=/etc/pycsw/pycsw.cfg
 
-RUN cp entrypoint.py /usr/local/bin/entrypoint.py \
+RUN cp entrypoint.py /usr/local/bin/entrypoint.py
 
 WORKDIR /home/pycsw
 
