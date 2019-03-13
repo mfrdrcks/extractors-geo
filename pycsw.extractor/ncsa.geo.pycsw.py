@@ -242,7 +242,7 @@ class PycswExtractor(Extractor):
         else:
             xml_isFeature = 'GeoTIFF'
 
-        xml_str = pycswutil.construct_insert_xml(xml_identifier, xml_reference, xml_isFeature, xml_subject,
+        xml_str = pycswutil.construct_insert_xml(self.proxy_url, self.gs_workspace, xml_identifier, xml_reference, xml_isFeature, xml_subject,
                                           xml_keyword,
                                           xml_title,
                                           xml_lower_corner, xml_upper_corner)

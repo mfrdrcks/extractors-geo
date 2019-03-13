@@ -15,3 +15,5 @@ Please review the current roles match your use case.**
 ### Fixed
 - Showing worldwide map extent in WGS84 projection in geospatial viewer
 [SYN-317](https://jira.ncsa.illinois.edu/browse/SYN-317)
+- make data with unknown projection not processed in extractor
+[SY-328](https://jira.ncsa.illinois.edu/browse/SYN-328)

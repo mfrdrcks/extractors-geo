@@ -23,7 +23,7 @@ class Utils:
     """
     construnct xml for dataset insert to pycsw
     """
-    def construct_insert_xml(self, xml_identifier, xml_reference, xml_isFeature, xml_subject, xml_keyword, xml_title,
+    def construct_insert_xml(self, geoserever_url, workspace, xml_identifier, xml_reference, xml_isFeature, xml_subject, xml_keyword, xml_title,
                              xml_lower_corner, xml_upper_corner):
         # read xml template
         currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -35,6 +35,7 @@ class Utils:
         # replace parameters
         # the string are located in pycsw_insert_template.xml
         # if you change the string values, the strings in xml file should also be changed.
+        rep_wmsserver = '%=wmsserver=%'
         rep_identifier = '%=identifier=%'
         rep_reference = '%=reference=%'
         rep_feature = '%=isFeature=%'
@@ -44,6 +45,9 @@ class Utils:
         rep_lowercorner = '%=lowerCorner=%'
         rep_uppercorner = '%=upperCorner=%'
 
+        wmsserver = geoserever_url + 'geoserver'  # use when geoserver_url is proxy
+        # wmsserver = geoserever_url # use when geoserver_url is geoserver
+        xml_temp_str = xml_temp_str.replace(rep_wmsserver, wmsserver)
         xml_temp_str = xml_temp_str.replace(rep_identifier, xml_identifier)
         xml_temp_str = xml_temp_str.replace(rep_reference, xml_reference)
         xml_temp_str = xml_temp_str.replace(rep_feature, xml_isFeature)
