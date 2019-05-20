@@ -1,11 +1,11 @@
-FROM clowder/pyclowder:1
-MAINTAINER Rui Liu <ruiliu@illinois.edu>
+FROM clowder/pyclowder:2
+MAINTAINER Yong Wook Kim <ywkim@illinois.edu>
 
 # copy requirements file
 COPY requirements.txt /home/clowder/
 
 # Install any programs needed
-USER root
+#USER root
 
 RUN apt-get update && apt-get -y install python-dev \
     python-pip \
@@ -22,7 +22,7 @@ RUN apt-get update && apt-get -y install python-dev \
     rm -rf /var/lib/apt/lists/*
 
 # Switch to clowder, copy files and be ready to run
-USER clowder
+#USER clowder
 
 # command to run when starting docker
 ENTRYPOINT ["/home/clowder/entrypoint.sh"]

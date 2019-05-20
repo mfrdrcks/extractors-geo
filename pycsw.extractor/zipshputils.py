@@ -1,10 +1,12 @@
 #!/usr/bin/python
+import sys
 import json
 import urllib
 from osgeo import osr
 from osgeo import ogr
 import tempfile
 import subprocess
+import shutil
 import errno
 import os
 import os.path
@@ -17,7 +19,6 @@ class Utils:
     def __init__(self, shpzipfile, zipUtil="/usr/bin/7z"):
         self.zipUtil = zipUtil
         self.shpzipfile = shpzipfile
-
         self.zipShpProp = {}
         self.zipShpProp['hasError'] = False
         self.zipShpProp['hasDir'] = False
@@ -33,10 +34,6 @@ class Utils:
         self.zipShpProp['extent'] = 'UNKNOWN'
         logging.basicConfig(format="%(asctime)-15s %(name)-10s %(levelname)-7s : %(message)s", level=logging.WARN)
         self.logger = logging.getLogger("zipshputils")
-        self.logger.setLevel(logging.DEBUG)
-        # setup logging for the gsclient
-        logging.getLogger('pyclowder').setLevel(logging.DEBUG)
-        logging.getLogger('__main__').setLevel(logging.DEBUG)
         ts = time.gmtime()
         self.time_stamp = str(ts.tm_mon)+str(ts.tm_hour)+str(ts.tm_min)+str(ts.tm_sec)
 
@@ -186,7 +183,6 @@ class Utils:
             srs.ImportFromESRI([prj_txt])
             srs.AutoIdentifyEPSG()
             prj_code=srs.GetAuthorityCode(None)
-
         except:
             prj_code = 'None'
     
@@ -280,7 +276,7 @@ class Utils:
             return None
         self.logger.debug("shpName: "+ self.zipShpProp['shpName'])
         # rezip the files in zip format if it is not a zip file
-        self.zipShpProp['targetZip'] = os.path.join(destinationDir, newname + '.zip')
+        self.zipShpProp['targetZip'] = os.path.join(destinationDir, self.zipShpProp['shpName']+'.zip')
         self.logger.debug("targetZip : "+ self.zipShpProp['targetZip'])
 
         # rename all the files in the folder

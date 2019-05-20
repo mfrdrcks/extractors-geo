@@ -11,8 +11,10 @@ RUN apt-get update && apt-get install -y \
        gdal-bin \
        python-gdal \
        p7zip-full \
+       python-pyproj \
+       git \
     && pip install --upgrade pip==9.0.3 \
-    && pip install --upgrade  -r /home/clowder/requirements.txt \
+    && pip install -r /home/clowder/requirements.txt \
     && rm -rf /var/lib/apt/lists/*
 
 # Switch to clowder, copy files and be ready to run
@@ -29,13 +31,13 @@ CMD ["extractor"]
 ENV RABBITMQ_URI="" \
     RABBITMQ_EXCHANGE="clowder" \
     RABBITMQ_VHOST="%2F" \
-    RABBITMQ_QUEUE="ncsa.geoshp.preview" \
-    MAIN_SCRIPT="ncsa.geo.shp.py" \
+    RABBITMQ_QUEUE="ncsa.pycsw.extractor" \
+    MAIN_SCRIPT="ncsa.geo.pycsw.py" \
     GEOSERVER_URL="" \
-    GEOSERVER_USERNAME="admin" \
-    GEOSERVER_PASSWORD="geoserver" \
+    GEOSERVER_WORKSPACE="clowder" \
+    PYCSW_URL="http://localhost:8000/pycsw" \
     PROXY_URL='http://localhost:9000/api/proxy/' \
     PROXY_ON='false'
 
 # copy rest of the files needed
-COPY entrypoint.sh *.py extractor_info.json rasterTemplate.xml /home/clowder/
+COPY entrypoint.sh *.py extractor_info.json pycsw_insert_template.xml pycsw_remove_template.xml /home/clowder/

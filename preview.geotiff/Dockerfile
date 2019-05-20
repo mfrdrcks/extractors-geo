@@ -1,21 +1,22 @@
-FROM clowder/pyclowder:1
-MAINTAINER Rob Kooper <kooper@illinois.edu>
+FROM clowder/pyclowder:2
+MAINTAINER Yong Wook Kim <ywkim@illinois.edu>
 
 # copy requirements file
 COPY requirements.txt /home/clowder/
 
 # Install any programs needed
-USER root
+#USER root
 RUN apt-get update && apt-get install -y \
        file \
        gdal-bin \
        python-gdal \
        p7zip-full \
+    && pip install --upgrade pip==9.0.3 \
     && pip install --upgrade  -r /home/clowder/requirements.txt \
     && rm -rf /var/lib/apt/lists/*
 
 # Switch to clowder, copy files and be ready to run
-USER clowder
+#USER clowder
 
 # command to run when starting docker
 ENTRYPOINT ["/home/clowder/entrypoint.sh"]
@@ -33,7 +34,8 @@ ENV RABBITMQ_URI="" \
     GEOSERVER_URL="" \
     GEOSERVER_USERNAME="admin" \
     GEOSERVER_PASSWORD="geoserver" \
-    GEOSERVER_WORKSPACE="clowder"
+    PROXY_URL='http://localhost:9000/api/proxy/' \
+    PROXY_ON='false'
 
 # copy rest of the files needed
 COPY entrypoint.sh *.py extractor_info.json rasterTemplate.xml /home/clowder/

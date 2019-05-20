@@ -1,20 +1,19 @@
 {
     "@context": "http://clowder.ncsa.illinois.edu/contexts/extractors.jsonld",
-    "name": "ncsa.geoshp.preview",
+    "name": "ncsa.pycsw.extractor",
     "version": "2.0",
-    "description": "gepshp extractor takes .zip input file to communicate with geoserver to retrieve WMS metadata",
-    "author": "Jong Lee <jonglee1@illinois.edu>",
+    "description": "gepshp extractor takes .zip or tiff input file to communicate with pycsw server to retrieve csw metadata",
+    "author": "Yong Wook Kim <ywkim@illinois.edu>",
     "contributors": [
         "Luigi Marini <lmarini@illinois.edu>",
         "Rob Kooper <kooper@illinois.edu>",
-        "Yong Wook Kim <ywkim@illinois.edu>",
+        "Jong Lee <jonglee1@illinois.edu>",
 	    "Bing Zhang <bing@illinois.edu>"
     ],
     "contexts": [
         {
-            "WMS Layer Name": "http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Layer Name",
-            "WMS Service URL":"http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Service URL",
-            "WMS Layer URL":  "http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#WMS Layer URL"
+            "CSW Service URL": "http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#CSW Service URL",
+            "CSW Record URL": "http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#CSW Record URL"
         }
     ],
     "process": {
@@ -25,7 +24,9 @@
             "multi.files-zipped",
             "application/zip",
             "application/x-zip",
-            "application/x-7z-compressed"
+            "application/x-7z-compressed",
+            "image/tiff",
+            "image/tif"
         ]
     },
     "repository": [
@@ -35,7 +36,7 @@
         },
         {
             "repType": "docker",
-            "repUrl": "clowder/extractors-geoshp-preview"
+            "repUrl": "clowder/extractors-pycsw"
         }
     ],
     "external_services": [

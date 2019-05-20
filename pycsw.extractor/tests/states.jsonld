@@ -1,0 +1,23 @@
+{
+    "@context": [
+        "https://clowder.ncsa.illinois.edu/contexts/metadata.jsonld",
+        {
+            "CSW Service URL": "http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#CSW Service URL",
+            "CSW Record URL": "http://clowder.ncsa.illinois.edu/metadata/ncsa.geoshp.preview#CSW Record URL"
+        }
+    ],
+    "attached_to": {
+        "resource_type": "cat:file",
+        "url": "http://localhost:9000/files/5ad8cbecada0577d30bd8442"
+    },
+    "created_at": "Thu Apr 19 12:03:43 CDT 2018",
+    "agent": {
+        "@type": "cat:extractor",
+        "name": "https://clowder.ncsa.illinois.edu/clowder/api/extractors/ncsa.pycsw.extractor",
+        "extractor_id": "https://clowder.ncsa.illinois.edu/clowder/api/extractors/ncsa.pycsw.extractor"
+    },
+    "content": {
+        "CSW Service URL": "https://agri-clowder.ncsa.illinois.edu/geoserver/csw",
+        "CSW Record URL": "https://agri-clowder.ncsa.illinois.edu/geoserver/csw?service=CSW&version=2.0.2&request=GetRecordById&elementsetname=summary&id=test:states.zip_5ad8cbecada0577d30bd8442&typeNames=gmd:MD_Metadata&resultType=results&elementSetName=full&outputSchema=http://www.isotc211.org/2005/gmd"
+    }
+}
