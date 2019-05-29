@@ -265,7 +265,7 @@ class PycswExtractor(Extractor):
         if not zipshp.hasError():
             msg['isZipShp'] = True
             if self.proxy_on.lower() == 'true':
-                cswserver = urlparse.urljoin(self.proxy_url, 'geoserver/csw')
+                cswserver = urlparse.urljoin(self.proxy_url, 'pycsw/csw')
                 cswrecord = cswserver + "?service=CSW&version=2.0.2&request=GetRecordById&elementsetname=summary" \
                                         "&id=" + self.gs_workspace + ":" + combined_name + "&typeNames=gmd:MD_Metadata" \
                                                                                       "&resultType=results&elementSetName=full&outputSchema" \
@@ -346,7 +346,7 @@ class PycswExtractor(Extractor):
         if not geotiffUtil.hasError():
             msg['isGeotiff'] = True
             if self.proxy_on.lower() == 'true':
-                cswserver = urlparse.urljoin(self.proxy_url, 'geoserver/csw')
+                cswserver = urlparse.urljoin(self.proxy_url, 'pycsw/csw')
                 cswrecord = cswserver + "?service=CSW&version=2.0.2&request=GetRecordById&elementsetname=summary" \
                                         "&id=" + self.gs_workspace + ":" + combined_name + "&typeNames=gmd:MD_Metadata" \
                                         "&resultType=results&elementSetName=full&outputSchema" \
