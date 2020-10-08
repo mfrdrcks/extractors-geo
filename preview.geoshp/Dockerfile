@@ -15,8 +15,7 @@ RUN apt-get update && apt-get install -y \
        gdal-bin \
        python-gdal \
        p7zip-full \
-    && pip install gsconfig-py3 \
-    && pip install --upgrade pip==9.0.3 \
+    && pip install --upgrade pip==20.2.3 \
     && pip install --upgrade  -r /home/clowder/requirements.txt \
     && rm -rf /var/lib/apt/lists/*
 
