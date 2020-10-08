@@ -22,7 +22,7 @@ RUN apt-get update && apt-get -y install python-dev \
     python-scipy \
     software-properties-common && \
     apt-add-repository ppa:ubuntugis/ppa && \
-    pip install --upgrade pip==9.0.3 && \
+    pip install --upgrade pip==20.2.3 && \
     pip install -r /home/clowder/requirements.txt && \
     rm -rf /var/lib/apt/lists/*
 
