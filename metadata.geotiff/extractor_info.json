@@ -1,7 +1,7 @@
 {
   "@context": "http://clowder.ncsa.illinois.edu/contexts/extractors.jsonld",
   "name": "ncsa.geotiff.metadata",
-  "version": "2.0",
+  "version": "2.1.0",
   "description": "Extractor to perform Geotiff.",
   "author": "Rui Liu <ruiliu@illinois.edu>",
   "contributors": [

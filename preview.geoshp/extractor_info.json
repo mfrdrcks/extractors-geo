@@ -1,7 +1,7 @@
 {
     "@context": "http://clowder.ncsa.illinois.edu/contexts/extractors.jsonld",
     "name": "ncsa.geoshp.preview",
-    "version": "2.0",
+    "version": "2.1.0",
     "description": "gepshp extractor takes .zip input file to communicate with geoserver to retrieve WMS metadata",
     "author": "Jong Lee <jonglee1@illinois.edu>",
     "contributors": [
