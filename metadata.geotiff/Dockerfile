@@ -1,4 +1,4 @@
-FROM python:3.7-slim
+FROM alpine:edge
 
 MAINTAINER Yong Wook Kim <ywkim@illinois.edu>
 
@@ -9,25 +9,11 @@ ARG GITSHA1="unknown"
 # copy requirements file
 COPY requirements.txt /home/clowder/
 
-# Install any programs needed
-#USER root
+RUN apk update && \
+    apk add make automake gcc g++ subversion python3-dev && \
+    apk add --no-cache python3 py3-pip py3-gdal py3-numpy && \
+    pip3 install -r /home/clowder/requirements.txt
 
-RUN apt-get update && apt-get -y install python-dev \
-    python-pip \
-    python-dev \
-    build-essential \
-    python-numpy \
-    gdal-bin \
-    python-gdal \
-    python-scipy \
-    software-properties-common && \
-    apt-add-repository ppa:ubuntugis/ppa && \
-    pip install --upgrade pip==20.2.3 && \
-    pip install -r /home/clowder/requirements.txt && \
-    rm -rf /var/lib/apt/lists/*
-
-# Switch to clowder, copy files and be ready to run
-#USER clowder
 
 # command to run when starting docker
 ENTRYPOINT ["/home/clowder/entrypoint.sh"]
