@@ -70,9 +70,19 @@ class ExtractorsGeotiffPreview(Extractor):
     # Process the file and upload the results
     def process_message(self, connector, host, secret_key, resource, parameters):
         self.logger = logging.getLogger(__name__)
-
+        isTiffType = False
+        if parameters.get('source'):
+            mimetype = parameters.get('source').get('mimeType')
+            if mimetype == 'image/tiff' or mimetype == 'image/tif':
+                isTiffType = True
         """Process the geotiff and create geoserver layer"""
         filename = resource['name']
+        # add .tif to filename if filename doesnot have it.
+        if isTiffType:
+            extension = os.path.splitext(filename)[1]
+            if extension != '.tif' and extension != '.tiff':
+                filename = filename + '.tif'
+
         inputfile = resource["local_paths"][0]
         fileid = resource['id']
 
