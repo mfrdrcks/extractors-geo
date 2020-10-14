@@ -1,4 +1,4 @@
-FROM alpine:edge
+FROM ubuntu:20.04
 
 MAINTAINER Yong Wook Kim <ywkim@illinois.edu>
 
@@ -9,10 +9,15 @@ ARG GITSHA1="unknown"
 # copy requirements file
 COPY requirements.txt /home/clowder/
 
-RUN apk update && \
-    apk add make automake gcc g++ subversion python3-dev && \
-    apk add --no-cache python3 py3-pip py3-gdal py3-numpy && \
-    pip3 install -r /home/clowder/requirements.txt
+RUN apt-get update &&\
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    python3 \
+    python3-pip \
+    python3-gdal \
+    python3-rtree \
+    python3-scipy && \
+    pip3 install -r /home/clowder/requirements.txt && \
+    rm -rf /var/lib/apt/lists/*
 
 
 # command to run when starting docker
