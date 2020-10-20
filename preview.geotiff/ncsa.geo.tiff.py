@@ -79,7 +79,7 @@ class ExtractorsGeotiffPreview(Extractor):
         filename = resource['name']
         # add .tif to filename if filename doesnot have it.
         if isTiffType:
-            extension = os.path.splitext(filename)[1]
+            extension = os.path.splitext(filename)[1].lower()
             if extension != '.tif' and extension != '.tiff':
                 filename = filename + '.tif'
 
