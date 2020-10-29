@@ -10,7 +10,6 @@ class Client:
     
     def __init__ (self, geoserver, username, password):
         self.restserver = urljoin(geoserver, 'rest/')
-        print(self.restserver)
         self.wmsserver = urljoin(geoserver, 'wms')
         self.cswserver = urljoin(geoserver, 'csw')
         self.username = username
@@ -162,7 +161,6 @@ class Client:
         is_workspace = False
 
         response_worksp = requests.get(self.restserver + '/workspaces/' + workspace, auth=(self.username, self.password))
-        print(response_worksp)
         if response_worksp.status_code != 200:
             new_worksp = "<workspace><name>" + workspace + "</name></workspace>"
             response_worksp = requests.post(self.restserver + '/workspaces', headers={"Content-type": "text/xml"},
@@ -181,7 +179,6 @@ class Client:
             with open(filename, 'rb') as f:
                 response = requests.put(url, headers={'content-type': 'image/tiff'},
                                             auth=(self.username, self.password), data=f)
-                print(response)
 
             return self.set_resources(response, storename, workspace, projection, styleStr)
         else:
