@@ -30,12 +30,11 @@ jobs:
       fail-fast: true
       matrix:
         name:
-          - metadata.geotiff
-#          - audio-speech2text
+          - geotiff-metadata
           - preview.geoshp
           - preview.geotiff
         include:
-          - name: metadata.geotiff
+          - name: geotiff-metadata
             FOLDER: metadata.geotiff
           - name: preview.geoshp
             FOLDER: preview.geoshp

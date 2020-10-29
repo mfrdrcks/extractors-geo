@@ -15,6 +15,7 @@ RUN apt-get update &&\
     python3-pip \
     python3-gdal \
     python3-rtree \
+    python-is-python3 \
     python3-scipy && \
     pip3 install -r /home/clowder/requirements.txt && \
     rm -rf /var/lib/apt/lists/*

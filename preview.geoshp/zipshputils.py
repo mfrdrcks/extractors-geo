@@ -299,8 +299,8 @@ if __name__ == "__main__":
     zipshp2 = Utils("gltg-folder.7z")
 
     if not zipshp.hasError():
-        print zipshp.zipShpProp
+        print(zipshp.zipShpProp)
         zipshp.createZip('.')
-    print zipshp2.hasError()
-    print zipshp2.zipShpProp
+    print (zipshp2.hasError())
+    print (zipshp2.zipShpProp)
 
