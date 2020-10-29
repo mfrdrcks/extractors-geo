@@ -2,7 +2,7 @@ from geoserver.catalog import Catalog
 import requests
 import os.path
 import tempfile
-import urlparse
+import urllib.parse as urlparse
 import logging
 
 
