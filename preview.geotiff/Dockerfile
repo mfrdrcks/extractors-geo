@@ -1,4 +1,4 @@
-FROM python:3.7-slim
+FROM alpine:3.12
 
 MAINTAINER Yong Wook Kim <ywkim@illinois.edu>
 
@@ -6,26 +6,12 @@ ARG VERSION="unknown"
 ARG BUILDNUMBER="unknown"
 ARG GITSHA1="unknown"
 
+# Install any programs needed
+RUN apk add --no-cache python3 py3-pip py3-gdal p7zip
+
 # copy requirements file
 COPY requirements.txt /home/clowder/
-
-# Install any programs needed
-#USER root
-RUN apt-get update && apt-get install -y \
-       file \
-       gdal-bin \
-       python-gdal \
-       p7zip-full \
-    && pip install --upgrade pip==20.2.3 \
-    && pip install --upgrade  -r /home/clowder/requirements.txt \
-    && rm -rf /var/lib/apt/lists/*
-
-# Switch to clowder, copy files and be ready to run
-#USER clowder
-
-# command to run when starting docker
-ENTRYPOINT ["/home/clowder/entrypoint.sh"]
-CMD ["extractor"]
+RUN pip3 install --upgrade  -r /home/clowder/requirements.txt
 
 # Setup environment variables. These are passed into the container. You can change
 # these to your setup. If RABBITMQ_URI is not set, it will try and use the rabbitmq
@@ -46,4 +32,7 @@ ENV VERSION=${VERSION} \
     PROXY_ON='false'
 
 # copy rest of the files needed
-COPY entrypoint.sh *.py extractor_info.json rasterTemplate.xml /home/clowder/
+COPY  *.py extractor_info.json rasterTemplate.xml /home/clowder/
+
+# command to run when starting docker
+CMD ["python3", "ncsa.geo.tiff.py"]

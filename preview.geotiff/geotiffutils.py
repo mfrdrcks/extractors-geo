@@ -203,5 +203,4 @@ class Utils:
 if __name__ == "__main__":
     source = "jong.tif"
     geo = Utils(source)
-    print geo.createStyle()
-
+    print(geo.createStyle())

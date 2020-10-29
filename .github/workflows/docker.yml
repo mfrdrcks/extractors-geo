@@ -33,13 +33,13 @@ jobs:
           - metadata.geotiff
 #          - audio-speech2text
           - preview.geoshp
-          - preview.geotiff
+          - geotiff-preview
         include:
           - name: metadata.geotiff
             FOLDER: metadata.geotiff
           - name: preview.geoshp
             FOLDER: preview.geoshp
-          - name: preview.geotiff
+          - name: geotiff-preview
             FOLDER: preview.geotiff
     steps:
       - uses: actions/checkout@v2

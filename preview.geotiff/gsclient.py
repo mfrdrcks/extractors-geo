@@ -1,16 +1,18 @@
+import errno
+from urllib.parse import urljoin
 from geoserver.catalog import Catalog
 import requests
 import os.path
 import tempfile
-import urlparse
 import logging
 
 class Client:
     
     def __init__ (self, geoserver, username, password):
-        self.restserver = urlparse.urljoin(geoserver, 'rest')
-        self.wmsserver = urlparse.urljoin(geoserver, 'wms')
-        self.cswserver = urlparse.urljoin(geoserver, 'csw')
+        self.restserver = urljoin(geoserver, 'rest/')
+        print(self.restserver)
+        self.wmsserver = urljoin(geoserver, 'wms')
+        self.cswserver = urljoin(geoserver, 'csw')
         self.username = username
         self.password = password
         self.catalog = Catalog(self.restserver, self.username, self.password) 
@@ -160,6 +162,7 @@ class Client:
         is_workspace = False
 
         response_worksp = requests.get(self.restserver + '/workspaces/' + workspace, auth=(self.username, self.password))
+        print(response_worksp)
         if response_worksp.status_code != 200:
             new_worksp = "<workspace><name>" + workspace + "</name></workspace>"
             response_worksp = requests.post(self.restserver + '/workspaces', headers={"Content-type": "text/xml"},
@@ -178,6 +181,7 @@ class Client:
             with open(filename, 'rb') as f:
                 response = requests.put(url, headers={'content-type': 'image/tiff'},
                                             auth=(self.username, self.password), data=f)
+                print(response)
 
             return self.set_resources(response, storename, workspace, projection, styleStr)
         else:
@@ -257,7 +261,7 @@ class Client:
                 self.logger.debug("done getting layer name")
                 if layer == None: 
                     self.logger.debug('No layer found [DONE]')
-                    return metadata
+                    return ''
                 else:
                     layername = layer.name
             else:
