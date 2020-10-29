@@ -6,10 +6,8 @@ import os
 import tempfile
 import subprocess
 
-#from urlparse import urlparse
-import urllib.parse
-#from urlparse import urljoin
-from urllib.parse import urljoin
+from urlparse import urlparse
+from urlparse import urljoin
 
 from pyclowder.extractors import Extractor
 from pyclowder.utils import StatusMessage
@@ -139,7 +137,7 @@ class ExtractorsGeoshpPreview(Extractor):
             try:
                 os.remove(tmpfile)
                 self.logger.debug("delete tmpfile: " + tmpfile)
-            except Exception:
+            except StandardError, OSError:
                 pass
 
     def remove_geoserver_layer(self, storename, layername):
