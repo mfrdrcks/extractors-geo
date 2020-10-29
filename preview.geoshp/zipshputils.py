@@ -12,9 +12,9 @@ import time
 import logging
 
 class Utils:
-    zipUtil = "/usr/bin/7z"
+    zipUtil = "/usr/local/bin/7z"
 
-    def __init__(self, shpzipfile, zipUtil="/usr/bin/7z"):
+    def __init__(self, shpzipfile, zipUtil="/usr/local/bin/7z"):
         self.zipUtil = zipUtil
         self.shpzipfile = shpzipfile
 
@@ -43,13 +43,13 @@ class Utils:
         # create temp directory
         self.logger.debug("Creating temp dir ...")
         self.tempDir = tempfile.mkdtemp()
-        self.logger.debug(self.tempDir, "[DONE]")
+        self.logger.debug(self.tempDir + " [DONE]")
 
         # unzip compressed file
         self.logger.debug("Uncompress the file ...")
         output = subprocess.check_output([zipUtil, 'x', '-o%s' % self.tempDir, shpzipfile], shell=False, stderr=subprocess.STDOUT)
         self.logger.debug(output)
-        self.logger.debug(shpzipfile, "[DONE]")
+        self.logger.debug(shpzipfile + " [DONE]")
 
         # check the self.zipShpProp
         self.files = [os.path.join(self.tempDir, f) for f in os.listdir(self.tempDir)]

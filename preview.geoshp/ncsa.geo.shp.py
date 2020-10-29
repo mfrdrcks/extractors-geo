@@ -6,7 +6,7 @@ import os
 import tempfile
 import subprocess
 
-import urllib.parse as urlparse
+from urllib.parse import urlparse
 from urllib.parse import urljoin
 # from urlparse import urlparse
 # from urlparse import urljoin
@@ -182,8 +182,8 @@ class ExtractorsGeoshpPreview(Extractor):
         if not zipshp.hasError():
             msg['isZipShp'] = True
             result = subprocess.check_output(['file', '-b', '--mime-type', inputfile], stderr=subprocess.STDOUT)
+            result = result.decode("utf-8")
             self.logger.info('result.strip is [%s]', result.strip())
-
             if result.strip() != 'application/zip':
                 msg['errorMsg'].append('result.strip is: ' + str(result.strip()))
                 return msg
