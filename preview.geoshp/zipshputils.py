@@ -12,9 +12,9 @@ import time
 import logging
 
 class Utils:
-    zipUtil = "/usr/local/bin/7z"
+    zipUtil = "/usr/bin/7z"
 
-    def __init__(self, shpzipfile, zipUtil="/usr/local/bin/7z"):
+    def __init__(self, shpzipfile, zipUtil="/usr/bin/7z"):
         self.zipUtil = zipUtil
         self.shpzipfile = shpzipfile
 
