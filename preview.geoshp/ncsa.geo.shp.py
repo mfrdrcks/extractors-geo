@@ -6,8 +6,10 @@ import os
 import tempfile
 import subprocess
 
-from urlparse import urlparse
-from urlparse import urljoin
+from urllib.parse import urlparse
+from urllib.parse import urljoin
+# from urlparse import urlparse
+# from urlparse import urljoin
 
 from pyclowder.extractors import Extractor
 from pyclowder.utils import StatusMessage
@@ -137,7 +139,7 @@ class ExtractorsGeoshpPreview(Extractor):
             try:
                 os.remove(tmpfile)
                 self.logger.debug("delete tmpfile: " + tmpfile)
-            except StandardError, OSError:
+            except Exception:
                 pass
 
     def remove_geoserver_layer(self, storename, layername):
@@ -160,7 +162,7 @@ class ExtractorsGeoshpPreview(Extractor):
             self.logger.debug("deleting the store...")
             cat.delete(store)
             cat.reload
-        except StandardError:
+        except Exception:
             self.logger.error("Failed to remove from geoserver")
 
     def extractZipShp(self, inputfile, fileid, filename, secret_key):
@@ -180,8 +182,8 @@ class ExtractorsGeoshpPreview(Extractor):
         if not zipshp.hasError():
             msg['isZipShp'] = True
             result = subprocess.check_output(['file', '-b', '--mime-type', inputfile], stderr=subprocess.STDOUT)
+            result = result.decode("utf-8")
             self.logger.info('result.strip is [%s]', result.strip())
-
             if result.strip() != 'application/zip':
                 msg['errorMsg'].append('result.strip is: ' + str(result.strip()))
                 return msg
