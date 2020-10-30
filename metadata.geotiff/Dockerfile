@@ -1,4 +1,4 @@
-FROM python:3-7-slim
+FROM ubuntu:20.04
 
 MAINTAINER Yong Wook Kim <ywkim@illinois.edu>
 
@@ -9,25 +9,18 @@ ARG GITSHA1="unknown"
 # copy requirements file
 COPY requirements.txt /home/clowder/
 
-# Install any programs needed
-#USER root
-
-RUN apt-get update && apt-get -y install python-dev \
-    python-pip \
-    python-dev \
-    build-essential \
-    python-numpy \
-    gdal-bin \
-    python-gdal \
-    python-scipy \
-    software-properties-common && \
-    apt-add-repository ppa:ubuntugis/ppa && \
-    pip install --upgrade pip==9.0.3 && \
-    pip install -r /home/clowder/requirements.txt && \
+RUN apt-get update &&\
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    python3 \
+    python-is-python3 \
+    python3-pip \
+    python3-gdal \
+    python3-rtree \
+    python-is-python3 \
+    python3-scipy && \
+    pip3 install -r /home/clowder/requirements.txt && \
     rm -rf /var/lib/apt/lists/*
 
-# Switch to clowder, copy files and be ready to run
-#USER clowder
 
 # command to run when starting docker
 ENTRYPOINT ["/home/clowder/entrypoint.sh"]

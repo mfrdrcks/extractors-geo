@@ -2,14 +2,14 @@ from geoserver.catalog import Catalog
 import requests
 import os.path
 import tempfile
-import urlparse
+import urllib.parse as urlparse
 import logging
 
 
 class Client:
     
     def __init__ (self, geoserver, username, password):
-        self.restserver = urlparse.urljoin(geoserver, 'rest')
+        self.restserver = urlparse.urljoin(geoserver, 'rest/')
         self.wmsserver = urlparse.urljoin(geoserver, 'wms')
         self.username = username
         self.password = password
@@ -129,10 +129,10 @@ class Client:
         is_workspace = False
 
         self.logger.debug("checking workspace %s" % workspace)
-        response_worksp = requests.get(self.restserver + '/workspaces/' + workspace, auth=(self.username, self.password))
+        response_worksp = requests.get(self.restserver + 'workspaces/' + workspace, auth=(self.username, self.password))
         if response_worksp.status_code != 200:
             new_worksp = "<workspace><name>" + workspace + "</name></workspace>"
-            response_worksp = requests.post(self.restserver + '/workspaces',
+            response_worksp = requests.post(self.restserver + 'workspaces',
                                             headers={"Content-type": "text/xml"},
                                             auth=(self.username, self.password), data=new_worksp)
             if response_worksp.status_code == 201:
@@ -141,7 +141,7 @@ class Client:
             is_workspace = True
 
         if is_workspace:
-            url = self.restserver+"/workspaces/"+workspace+"/datastores/" + storename + "/file.shp"
+            url = self.restserver+"workspaces/"+workspace+"/datastores/" + storename + "/file.shp"
             response = None
             self.logger.debug("put file to geosever %s" % url)
             with open(filename, 'rb') as f:

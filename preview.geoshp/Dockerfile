@@ -1,4 +1,4 @@
-FROM python:3-7-slim
+FROM ubuntu:20.04
 MAINTAINER Yong Wook Kim <ywkim@illinois.edu>
 
 ARG VERSION="unknown"
@@ -9,15 +9,18 @@ ARG GITSHA1="unknown"
 COPY requirements.txt /home/clowder/
 
 # Install any programs needed
-#USER root
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && \
+       DEBIAN_FRONTEND=noninteractive apt-get install -y \
        file \
-       gdal-bin \
-       python-gdal \
-       p7zip-full \
-    && pip install --upgrade pip==9.0.3 \
-    && pip install --upgrade  -r /home/clowder/requirements.txt \
-    && rm -rf /var/lib/apt/lists/*
+       python3 \
+       python-is-python3 \
+       python3-pip \
+       python3-gdal \
+       python3-rtree \
+       python3-scipy \
+       p7zip-full && \
+       pip3 install -r /home/clowder/requirements.txt && \
+       rm -rf /var/lib/apt/lists/*
 
 # Switch to clowder, copy files and be ready to run
 #USER clowder

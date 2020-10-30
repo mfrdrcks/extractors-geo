@@ -62,45 +62,60 @@ class MetadataGeotiff(Extractor):
     """Extract and return metadata from the Geotiff file."""
     def parse_geotiff(self, input_file):
         # This method was originally written by Dr. Mostafa Elag.
-
         raster_uri = input_file
-
         # Get the bounding box of a raster
-        bbox_list = geoprocess.get_bounding_box(raster_uri)
-
+        # bbox_list = geoprocess.get_bounding_box(raster_uri)
+        raster_info = geoprocess.get_raster_info(raster_uri)
+        boundingbox = raster_info.get('bounding_box')
+        bbox_list = [boundingbox[0], boundingbox[3], boundingbox[2], boundingbox[1]]
         # Get the cell size of a raster
-        cell_size = geoprocess.get_cell_size_from_uri(raster_uri)
+        cell_size = raster_info.get('pixel_size')
+        # cell_size = geoprocess.get_cell_size_from_uri(raster_uri)
 
         # Get the projection of a raster as well-known text
-        proj_wkt = geoprocess.get_dataset_projection_wkt_uri(raster_uri)
+        proj_wkt = raster_info.get('projection_wkt')
+        # proj_wkt = geoprocess.get_dataset_projection_wkt_uri(raster_uri)
         proj = re.findall('"([^"]*)"', proj_wkt)[0]
 
         # Get the datatype of a raster
-        dtype = geoprocess.get_datatype_from_uri(raster_uri)
+        dtype = raster_info.get('datatype')
+        # dtype = geoprocess.get_datatype_from_uri(raster_uri)
 
         # Get dimension and size properties of a raster
-        dataset = gdal.Open(raster_uri)
-        properties_dict = geoprocess.get_raster_properties(dataset)
-
+        properties_dict = dict()
+        properties_dict['width'] = raster_info.get('pixel_size')[0]
+        properties_dict['height'] = raster_info.get('pixel_size')[1]
+        properties_dict['x_size'] = raster_info.get('raster_size')[0]
+        properties_dict['y_size'] = raster_info.get('raster_size')[1]
+        # properties_dict = geoprocess.raster_properties()
         # Get a raster's attribute table
         attr_dict = {1: 'type1', 2: 'type2'}
-        column_name = 'Column_Name'
-        geoprocess.create_rat_uri(raster_uri, attr_dict, column_name)
+        gtif = gdal.Open(raster_uri)
+        srcband = gtif.GetRasterBand(1)
+        # Get raster statistics
+        stats = srcband.GetStatistics(False, True)
+        rast_stats = dict()
+        rast_stats['max'] = stats[1]
+        rast_stats['min'] = stats[0]
+        rast_stats['average'] = stats[2]
+        rast_stats['st-dev'] = stats[3]
+        #geoprocess.create_rat_uri(raster_uri, attr_dict, column_name)
         # rat_dict = geoprocess.get_rat_as_dictionary_uri(raster_uri)
 
         # Get the number of rows and columns of a raster
-        row_col = geoprocess.get_row_col_from_uri(raster_uri)
+        row_col = (properties_dict['y_size'], properties_dict['x_size'])
+        # row_col = geoprocess.get_row_col_from_uri(raster_uri)
 
         # Get statistics of a raster
-        stat = geoprocess.get_statistics_from_uri(raster_uri)
-        stats = {'min': stat[0], 'max': stat[1], 'average': stat[2], 'st-dev': stat[3]}
+        # stat = geoprocess.get_statistics_from_uri(raster_uri)
+        # stats = {'min': stat[0], 'max': stat[1], 'average': stat[2], 'st-dev': stat[3]}
 
         # Need to add the context and field from the GML
         ''' do we need to call the SAS spatial annotation from here or directly add  the context and fields'''
         Raster_info = {'GeoJSON': {'type': 'Polygon', 'coordinates': [
             [[bbox_list[0], bbox_list[3]], [bbox_list[0], bbox_list[1]], [bbox_list[2], bbox_list[1]],
              [bbox_list[2], bbox_list[3]], [bbox_list[0], bbox_list[3]]]]}, 'box': bbox_list, 'proj': proj,
-                       'properties': properties_dict, 'nrow_col': row_col, 'rast_stats': stats}
+                       'properties': properties_dict, 'nrow_col': row_col, 'rast_stats': rast_stats}
 
         return Raster_info
 

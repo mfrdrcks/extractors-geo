@@ -10,7 +10,7 @@ import requests
 import os, inspect, logging
 
 from pyproj import Proj, transform
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 
 class Utils:

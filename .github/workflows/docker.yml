@@ -30,17 +30,19 @@ jobs:
       fail-fast: true
       matrix:
         name:
-          - metadata.geotiff
-#          - audio-speech2text
-          - preview.geoshp
-          - preview.geotiff
+          - geotiff-metadata
+          - geoshp-preview
+          - geotiff-preview
+          - pycsw
         include:
-          - name: metadata.geotiff
+          - name: geotiff-metadata
             FOLDER: metadata.geotiff
-          - name: preview.geoshp
+          - name: geoshp-preview
             FOLDER: preview.geoshp
-          - name: preview.geotiff
+          - name: geotiff-preview
             FOLDER: preview.geotiff
+          - name: pycsw
+            FOLDER: pycsw.extractor
     steps:
       - uses: actions/checkout@v2
 

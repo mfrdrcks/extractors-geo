@@ -1,6 +1,7 @@
-gsconfig==1.0.3
+gsconfig-py3==1.0.8
 pika>=1.0.0
 requests>=2.10.0
 wheel>=0.24.0
 xmltodict==0.11.0
+pyproj==2.6.1.post1
 pyclowder==2.3.4
