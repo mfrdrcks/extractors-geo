@@ -31,15 +31,18 @@ jobs:
       matrix:
         name:
           - geotiff-metadata
-          - preview.geoshp
-          - preview.geotiff
+          - geoshp-preview
+          - geotiff-preview
+          - pycsw
         include:
           - name: geotiff-metadata
             FOLDER: metadata.geotiff
-          - name: preview.geoshp
+          - name: geoshp-preview
             FOLDER: preview.geoshp
-          - name: preview.geotiff
+          - name: geotiff-preview
             FOLDER: preview.geotiff
+          - name: pycsw
+            FOLDER: pycsw.extractor
     steps:
       - uses: actions/checkout@v2
 
