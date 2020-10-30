@@ -31,9 +31,9 @@ jobs:
       matrix:
         name:
           - metadata.geotiff
-#          - audio-speech2text
           - preview.geoshp
           - preview.geotiff
+          - pycsw
         include:
           - name: metadata.geotiff
             FOLDER: metadata.geotiff
@@ -41,6 +41,8 @@ jobs:
             FOLDER: preview.geoshp
           - name: preview.geotiff
             FOLDER: preview.geotiff
+          - name: pycsw
+            FOLDER:pycsw.extractor
     steps:
       - uses: actions/checkout@v2
 
