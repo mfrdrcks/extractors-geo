@@ -42,7 +42,7 @@ jobs:
           - name: preview.geotiff
             FOLDER: preview.geotiff
           - name: pycsw
-            FOLDER:pycsw.extractor
+            FOLDER: pycsw.extractor
     steps:
       - uses: actions/checkout@v2
 
