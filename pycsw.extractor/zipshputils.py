@@ -32,12 +32,12 @@ class Utils:
         self.zipShpProp['targetZip'] = None
         self.zipShpProp['epsg'] = 'UNKNOWN'
         self.zipShpProp['extent'] = 'UNKNOWN'
-        logging.basicConfig(format="%(asctime)-15s %(name)-10s %(levelname)-7s : %(message)s", level=logging.WARN)
+        logging.basicConfig(format="%(asctime)-15s %(name)-10s %(levelname)-7s : %(message)s", level=logging.INFO)
         self.logger = logging.getLogger("zipshputils")
-        self.logger.setLevel(logging.DEBUG)
+        #self.logger.setLevel(logging.DEBUG)
         # setup logging for the gsclient
-        logging.getLogger('pyclowder').setLevel(logging.DEBUG)
-        logging.getLogger('__main__').setLevel(logging.DEBUG)
+        #logging.getLogger('pyclowder').setLevel(logging.DEBUG)
+        #logging.getLogger('__main__').setLevel(logging.DEBUG)
         ts = time.gmtime()
         self.time_stamp = str(ts.tm_mon) + str(ts.tm_hour) + str(ts.tm_min) + str(ts.tm_sec)
 
