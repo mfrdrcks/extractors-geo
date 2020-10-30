@@ -7,7 +7,7 @@ ARG BUILDNUMBER="unknown"
 ARG GITSHA1="unknown"
 
 # Install any programs needed
-RUN apk add --no-cache python3 py3-pip py3-gdal p7zip
+RUN apk add --no-cache python3 py3-pip py3-gdal p7zip gdal-tools
 
 # copy requirements file
 COPY requirements.txt /home/clowder/
@@ -29,7 +29,9 @@ ENV VERSION=${VERSION} \
     GEOSERVER_USERNAME="admin" \
     GEOSERVER_PASSWORD="geoserver" \
     PROXY_URL='http://localhost:9000/api/proxy/' \
-    PROXY_ON='false'
+    PROXY_ON='false' \
+    GDALADDO_ARGS='--config COMPRESS_OVERVIEW JPEG --config JPEG_QUALITY_OVERVIEW 75 -r cubic' \
+    GDALADDO_LEVELS='2 4 8 16 32 64 128 256 512 1024'
 
 # copy rest of the files needed
 COPY  *.py extractor_info.json rasterTemplate.xml /home/clowder/

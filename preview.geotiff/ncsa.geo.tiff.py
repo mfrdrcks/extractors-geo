@@ -2,6 +2,7 @@
 
 import logging
 import os
+import subprocess
 import tempfile
 from urllib.parse import urlparse, urljoin
 
@@ -131,8 +132,8 @@ class ExtractorsGeotiffPreview(Extractor):
                 pyclowder.files.upload_metadata(connector, host, secret_key, fileid, metadata)
                 self.logger.debug("upload file metadata")
 
-        except Exception as ex:
-            self.logger.debug(ex.message)
+        except:
+            self.logger.exception("Error uploading metadata")
         finally:
             try:
                 os.remove(tmpfile)
@@ -154,7 +155,7 @@ class ExtractorsGeotiffPreview(Extractor):
             cat.delete(layer)
             cat.reload()
             cat.delete(store)
-            cat.reload
+            cat.reload()
         except:
             self.logger.error("Failed to remove from geoserver")
 
@@ -172,10 +173,10 @@ class ExtractorsGeotiffPreview(Extractor):
         geotiffUtil = gu.Utils(uploadfile, self.raster_style)
 
         if not geotiffUtil.hasError():
-            # convert image to pyramid
-            #args =
-            #gdaladdo --config COMPRESS_OVERVIEW JPEG --config JPEG_QUALITY_OVERVIEW 85
-            #gdal.QUALITY
+            subprocess.check_call(['/usr/bin/gdaladdo'] +
+                                  os.getenv("GDALADDO_ARGS", "").split() +
+                                  [inputfile] +
+                                  os.getenv("GDALADDO_LEVELS", "2").split())
 
             msg['isGeotiff'] = True
             # TODO if the proxy is working, gsclient host should be changed to proxy server
