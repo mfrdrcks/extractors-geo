@@ -2,11 +2,9 @@
 
 import logging
 import os
-import copy
+import subprocess
 import tempfile
-
-from urlparse import urlparse
-from urlparse import urljoin
+from urllib.parse import urlparse, urljoin
 
 from pyclowder.extractors import Extractor
 from pyclowder.utils import StatusMessage
@@ -19,6 +17,7 @@ import gsclient as gs
 
 from geoserver.catalog import Catalog
 
+
 class ExtractorsGeotiffPreview(Extractor):
     def __init__(self):
         Extractor.__init__(self)
@@ -26,9 +25,9 @@ class ExtractorsGeotiffPreview(Extractor):
         # parse command line and load default logging configuration
         self.setup()
 
-        self.extractorName = os.getenv('RABBITMQ_QUEUE', "ncsa.geoshp.preview")
+        self.extractorName = os.getenv('RABBITMQ_QUEUE', "ncsa.geotiff.preview")
         self.messageType = ["*.file.image.tiff", "*.file.image.tif"]
-        self.geoServer = os.getenv('GEOSERVER_URL')
+        self.geoServer = os.getenv('GEOSERVER_URL', 'http://localhost:8080/geoserver/')
         self.gs_username = os.getenv('GEOSERVER_USERNAME', 'admin')
         self.gs_password = os.getenv('GEOSERVER_PASSWORD', 'geoserver')
         self.proxy_url = os.getenv('PROXY_URL', 'http://localhost:9000/api/proxy/')
@@ -68,11 +67,21 @@ class ExtractorsGeotiffPreview(Extractor):
 
     # ----------------------------------------------------------------------
     # Process the file and upload the results
+    # Process the geotiff and create geoserver layer
     def process_message(self, connector, host, secret_key, resource, parameters):
         self.logger = logging.getLogger(__name__)
-
-        """Process the geotiff and create geoserver layer"""
+        isTiffType = False
+        if parameters.get('source'):
+            mimetype = parameters.get('source').get('mimeType')
+            if mimetype == 'image/tiff' or mimetype == 'image/tif':
+                isTiffType = True
         filename = resource['name']
+        # add .tif to filename if filename doesnot have it.
+        if isTiffType:
+            extension = os.path.splitext(filename)[1].lower()
+            if extension != '.tif' and extension != '.tiff':
+                filename = filename + '.tif'
+
         inputfile = resource["local_paths"][0]
         fileid = resource['id']
 
@@ -133,13 +142,13 @@ class ExtractorsGeotiffPreview(Extractor):
                 pyclowder.files.upload_metadata(connector, host, secret_key, fileid, metadata)
                 self.logger.debug("upload file metadata")
 
-        except Exception as ex:
-            self.logger.debug(ex.message)
+        except:
+            self.logger.exception("Error uploading metadata")
         finally:
             try:
                 os.remove(tmpfile)
                 self.logger.debug("delete tmpfile: " + tmpfile)
-            except StandardError, OSError:
+            except:
                 pass
 
     def remove_geoserver_layer(self, storename, layername):
@@ -156,8 +165,8 @@ class ExtractorsGeotiffPreview(Extractor):
             cat.delete(layer)
             cat.reload()
             cat.delete(store)
-            cat.reload
-        except StandardError:
+            cat.reload()
+        except:
             self.logger.error("Failed to remove from geoserver")
 
     def extractGeotiff(self, inputfile, fileid, filename, secret_key):
@@ -174,6 +183,11 @@ class ExtractorsGeotiffPreview(Extractor):
         geotiffUtil = gu.Utils(uploadfile, self.raster_style)
 
         if not geotiffUtil.hasError():
+            subprocess.check_call(['/usr/bin/gdaladdo'] +
+                                  os.getenv("GDALADDO_ARGS", "").split() +
+                                  [inputfile] +
+                                  os.getenv("GDALADDO_LEVELS", "2").split())
+
             msg['isGeotiff'] = True
             # TODO if the proxy is working, gsclient host should be changed to proxy server
             gsclient = gs.Client(self.geoServer, self.gs_username, self.gs_password)
