@@ -33,6 +33,10 @@ jobs:
           - geotiff-metadata
           - geoshp-preview
           - geotiff-preview
+          - metadata.geotiff
+          - preview.geoshp
+          - preview.geotiff
+          - pycsw
         include:
           - name: geotiff-metadata
             FOLDER: metadata.geotiff
@@ -40,6 +44,8 @@ jobs:
             FOLDER: preview.geoshp
           - name: geotiff-preview
             FOLDER: preview.geotiff
+          - name: pycsw
+            FOLDER: pycsw.extractor
     steps:
       - uses: actions/checkout@v2
 
