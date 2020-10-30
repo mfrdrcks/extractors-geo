@@ -43,13 +43,13 @@ class Utils:
         # create temp directory
         self.logger.debug("Creating temp dir ...")
         self.tempDir = tempfile.mkdtemp()
-        self.logger.debug(self.tempDir, "[DONE]")
+        self.logger.debug(self.tempDir + " [DONE]")
 
         # unzip compressed file
         self.logger.debug("Uncompress the file ...")
         output = subprocess.check_output([zipUtil, 'x', '-o%s' % self.tempDir, shpzipfile], shell=False, stderr=subprocess.STDOUT)
         self.logger.debug(output)
-        self.logger.debug(shpzipfile, "[DONE]")
+        self.logger.debug(shpzipfile + " [DONE]")
 
         # check the self.zipShpProp
         self.files = [os.path.join(self.tempDir, f) for f in os.listdir(self.tempDir)]
@@ -235,8 +235,8 @@ class Utils:
         proj = layer.GetSpatialRef()
         if proj.GetAttrValue("AUTHORITY", 1) == '4326':
             a = self.validateBbox(a)
-        ab = ct.TransformPoint(a[0],a[2],0)
-        cd = ct.TransformPoint(a[1],a[3],0)
+        ab = ct.TransformPoint(a[2], a[0],0)
+        cd = ct.TransformPoint(a[3], a[1],0)
         r= [ab[0], ab[1], cd[0], cd[1]]
 
         return ','.join(map(str,r))
@@ -299,8 +299,8 @@ if __name__ == "__main__":
     zipshp2 = Utils("gltg-folder.7z")
 
     if not zipshp.hasError():
-        print zipshp.zipShpProp
+        print (zipshp.zipShpProp)
         zipshp.createZip('.')
-    print zipshp2.hasError()
-    print zipshp2.zipShpProp
+    print (zipshp2.hasError())
+    print (zipshp2.zipShpProp)
 
