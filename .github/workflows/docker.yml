@@ -33,9 +33,6 @@ jobs:
           - geotiff-metadata
           - geoshp-preview
           - geotiff-preview
-          - metadata.geotiff
-          - preview.geoshp
-          - preview.geotiff
           - pycsw
         include:
           - name: geotiff-metadata
