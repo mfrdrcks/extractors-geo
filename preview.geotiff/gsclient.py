@@ -1,16 +1,17 @@
+import errno
+from urllib.parse import urljoin
 from geoserver.catalog import Catalog
 import requests
 import os.path
 import tempfile
-import urlparse
 import logging
 
 class Client:
     
     def __init__ (self, geoserver, username, password):
-        self.restserver = urlparse.urljoin(geoserver, 'rest')
-        self.wmsserver = urlparse.urljoin(geoserver, 'wms')
-        self.cswserver = urlparse.urljoin(geoserver, 'csw')
+        self.restserver = urljoin(geoserver, 'rest/')
+        self.wmsserver = urljoin(geoserver, 'wms')
+        self.cswserver = urljoin(geoserver, 'csw')
         self.username = username
         self.password = password
         self.catalog = Catalog(self.restserver, self.username, self.password) 
@@ -257,7 +258,7 @@ class Client:
                 self.logger.debug("done getting layer name")
                 if layer == None: 
                     self.logger.debug('No layer found [DONE]')
-                    return metadata
+                    return ''
                 else:
                     layername = layer.name
             else:
