@@ -10,9 +10,10 @@ ARG GITSHA1="unknown"
 COPY requirements.txt /home/clowder/
 
 # Install any programs needed
+#USER root
+# Install any programs needed
 RUN apt-get update && \
        DEBIAN_FRONTEND=noninteractive apt-get install -y \
-       file \
        python3 \
        python-is-python3 \
        python3-pip \

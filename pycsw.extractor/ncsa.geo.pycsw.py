@@ -6,7 +6,8 @@ import json
 import subprocess
 import os
 import tempfile
-import urlparse
+from urllib.parse import urlparse
+from urllib.parse import urljoin
 
 # from pyclowder import extractors
 from pyclowder.extractors import Extractor
@@ -149,7 +150,7 @@ class PycswExtractor(Extractor):
                     }
 
                     # post shapefile layer to pycsw
-                    wmsserver = urlparse.urljoin(self.geoServer, 'wms')
+                    wmsserver = urljoin(self.geoServer, 'wms')
                     layer_name = self.gs_workspace + ":" + combined_name
                     layer_url = wmsserver + '?request=GetMap&layers=' + layer_name + '&bbox=' + result['Shp Extent']\
                                 + '&width=640&height=480&srs=EPSG:3857&format=image%2Fpng'
@@ -194,7 +195,7 @@ class PycswExtractor(Extractor):
                     }
 
                     # post geotiff layer to pycsw
-                    wmsserver = urlparse.urljoin(self.geoServer, 'wms')
+                    wmsserver = urljoin(self.geoServer, 'wms')
                     layer_name = self.gs_workspace + ":" + combined_name
                     layer_url = wmsserver + '?request=GetMap&layers=' + layer_name + '&bbox=' + result['Tiff Extent'] \
                                 + '&width=640&height=480&srs=EPSG:3857&format=image%2Fpng'
@@ -265,7 +266,7 @@ class PycswExtractor(Extractor):
         if not zipshp.hasError():
             msg['isZipShp'] = True
             if self.proxy_on.lower() == 'true':
-                cswserver = urlparse.urljoin(self.proxy_url, 'pycsw/csw')
+                cswserver = urljoin(self.proxy_url, 'pycsw/csw')
                 cswrecord = cswserver + "?service=CSW&version=2.0.2&request=GetRecordById&elementsetname=summary" \
                                         "&id=" + self.gs_workspace + ":" + combined_name + "&typeNames=gmd:MD_Metadata" \
                                                                                       "&resultType=results&elementSetName=full&outputSchema" \
@@ -274,7 +275,7 @@ class PycswExtractor(Extractor):
                 msg['CSW Service URL'] = cswserver
                 msg['CSW Record URL'] = cswrecord
             else:
-                cswserver = urlparse.urljoin(self.geoServer, 'csw')
+                cswserver = urljoin(self.geoServer, 'csw')
                 cswrecord = cswserver + "?service=CSW&version=2.0.2&request=GetRecordById&elementsetname=summary" \
                                         "&id=" + self.gs_workspace + ":" + combined_name + "&typeNames=gmd:MD_Metadata" \
                                         "&resultType=results&elementSetName=full&outputSchema" \
@@ -284,6 +285,7 @@ class PycswExtractor(Extractor):
                 msg['CSW Record URL'] = cswrecord
 
             result = subprocess.check_output(['file', '-b', '--mime-type', inputfile], stderr=subprocess.STDOUT)
+            result = result.decode("utf-8")
             self.logger.info('result.strip is [%s]', result.strip())
 
             if result.strip() != 'application/zip':
@@ -346,7 +348,7 @@ class PycswExtractor(Extractor):
         if not geotiffUtil.hasError():
             msg['isGeotiff'] = True
             if self.proxy_on.lower() == 'true':
-                cswserver = urlparse.urljoin(self.proxy_url, 'pycsw/csw')
+                cswserver = urljoin(self.proxy_url, 'pycsw/csw')
                 cswrecord = cswserver + "?service=CSW&version=2.0.2&request=GetRecordById&elementsetname=summary" \
                                         "&id=" + self.gs_workspace + ":" + combined_name + "&typeNames=gmd:MD_Metadata" \
                                         "&resultType=results&elementSetName=full&outputSchema" \
@@ -355,7 +357,7 @@ class PycswExtractor(Extractor):
                 msg['CSW Service URL'] = cswserver
                 msg['CSW Record URL'] = cswrecord
             else:
-                cswserver = urlparse.urljoin(self.geoServer, 'csw')
+                cswserver = urljoin(self.geoServer, 'csw')
                 cswrecord = cswserver + "?service=CSW&version=2.0.2&request=GetRecordById&elementsetname=summary" \
                                         "&id=" + self.gs_workspace + ":" + combined_name + "&typeNames=gmd:MD_Metadata" \
                                                                                       "&resultType=results&elementSetName=full&outputSchema" \
